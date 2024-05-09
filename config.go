@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"os"
 	"os/exec"
 	"path"
@@ -22,6 +21,7 @@ type Config struct {
 	MarkdownViewerCMD CommandConfig
 	Editor            string
 	Git               string
+	Exclude           []string // exclude dirs/files. e.g., .git, .idea,...
 }
 
 type CommandConfig struct {
@@ -58,11 +58,14 @@ func (c *Config) ViewerCmd(fpath string) *exec.Cmd {
 	return cmd
 }
 
-func (c *Config) SnippetPath(name string, viewMode bool) string {
-	fname := path.Join(c.SnippetsDir, name)
+func (c *Config) SnippetPath(name string) string {
+	fname := name
+	if !strings.HasPrefix(name, c.SnippetsDir) {
+		fname = path.Join(c.SnippetsDir, name)
+	}
 
-	_, err := os.Stat(fname)
-	if err == nil || !errors.Is(err, os.ErrNotExist) { // If file exists, return its name
+	stat, err := os.Stat(fname)
+	if err == nil && !stat.IsDir() { // If file exists and is not a directory, return its name
 		return fname
 	}
 
