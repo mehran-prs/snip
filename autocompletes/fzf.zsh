@@ -1,3 +1,18 @@
+#--------------------------------
+# FZF autocompletion integration
+#--------------------------------
+
+### Helper functions
+_resolve_alias_to_cmd(){
+   local tokens=(${(z)1})
+   local cmd=$tokens[1]
+   local alias_definition=$(alias $cmd)
+   local resolved_cmd=${alias_definition#*=}
+   echo ${1/$cmd/${(Q)resolved_cmd}}
+}
+
+
+### fzf Autocomplete functions
 _fzf_complete_snip() {
   local tokens=(${(z)1}) # convert the command to array. e.g., snip -c abc => tokens=["snip","-c","abc"]
   # The value of the -c flag:
@@ -17,13 +32,10 @@ _fzf_complete_snip() {
 }
 
 _snip_aliases_fzf_complete(){
-  local tokens=(${(z)1})
-  local cmd=$tokens[1]
-  local alias_definition=$(alias $cmd)
-  # TODO: replace the alias value with the cmd name in "$@" param and provide "$@" param
-  #  instead of the alias value as pram of _fzf_complete_snip function. In this way it's
-  #  exactly like what fzf autocomplete provide when it call _fzf_complete_snip function.
-  _fzf_complete_snip ${alias_definition#*=}
+  # Store all parameters in an array
+  local params=("$@")
+  params[1]= $(_resolve_alias_to_cmd $1)
+  _fzf_complete_snip "${params[@]}"
 }
 
 # Register teh fzf completion for all aliases:
@@ -34,3 +46,5 @@ do
      _snip_aliases_fzf_complete
   }
 done
+
+

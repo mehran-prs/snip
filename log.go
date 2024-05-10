@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sync/atomic"
@@ -47,27 +48,27 @@ func SetLogLevel(level int32) { logLevel.Store(level) }
 // Debug Log
 func Debug(v ...interface{}) {
 	if LogLevelDebug >= logLevel.Load() {
-		logDebug.Println(v...)
+		_ = logDebug.Output(3, fmt.Sprint(v...))
 	}
 }
 
 // Info Log
 func Info(v ...interface{}) {
 	if LogLevelInfo >= logLevel.Load() {
-		logInfo.Println(v...)
+		_ = logInfo.Output(3, fmt.Sprint(v...))
 	}
 }
 
 // Warn log
 func Warn(v ...interface{}) {
 	if LogLevelWarn >= logLevel.Load() {
-		logWarn.Println(v...)
+		_ = logWarn.Output(3, fmt.Sprint(v...))
 	}
 }
 
 // Error Log
 func Error(v ...interface{}) {
 	if LogLevelError >= logLevel.Load() {
-		logError.Println(v...)
+		_ = logError.Output(3, fmt.Sprint(v...))
 	}
 }
