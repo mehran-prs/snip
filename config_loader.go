@@ -1,44 +1,61 @@
 package main
 
 import (
-	"log"
-	"strings"
+	"fmt"
+	"os"
 	"sync"
 
-	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/structs"
 	"github.com/knadh/koanf/v2"
+)
+
+const (
+	delimiter = "."
+	separator = "__"
+	structTag = "cfg" // the tag on the config struct that we use to map config path to the struct fields.
 )
 
 var cfgOnce sync.Once // Singleton config instance.
 var Cfg *Config
 
-// BIFROST_DEBUG -> DEBUG -> debug
-// BIFROST_DATABASE__HOST -> DATABASE__HOST -> database__host -> database.host
-
-func envToPathConverter(source string) string {
-	base := strings.ToLower(strings.TrimPrefix(source, prefix))
-	return strings.ReplaceAll(base, separator, delimiter)
+func userHomeDir() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = "/"
+	}
+	return home
 }
 
-func GetConfig() *Config {
+func loadConfig(configFile string, logLevel string) (err error) {
 	cfgOnce.Do(func() {
-		k := koanf.New(".")
+		k := koanf.New(delimiter)
 
 		// load default configuration from default function
-		if err := k.Load(structs.Provider(defaultConfig(), structTag), nil); err != nil {
-			log.Fatalf("error loading default: %s", err)
+		if err = k.Load(structs.Provider(defaultConfig(), structTag), nil); err != nil {
+			err = fmt.Errorf("error loading default: %w", err)
+			return
 		}
 
-		// load environment variables
-		if err := k.Load(env.Provider(prefix, delimiter, envToPathConverter), nil); err != nil {
-			log.Printf("error loading environment variables: %s", err)
+		// load from config file
+		if err = k.Load(file.Provider(configFile), yaml.Parser()); err != nil {
+			if !os.IsNotExist(err) { // Ignore and just log it
+				err = fmt.Errorf("can not load config file %s: %w", configFile, err)
+				return
+			}
+			Debug("config file not found, ignoring it.", "file:", configFile)
 		}
 
 		Cfg = &Config{}
-		if err := k.UnmarshalWithConf("", Cfg, koanf.UnmarshalConf{Tag: structTag}); err != nil {
-			log.Fatalf("error unmarshalling config: %s", err)
+		if err = k.UnmarshalWithConf("", Cfg, koanf.UnmarshalConf{Tag: structTag}); err != nil {
+			err = fmt.Errorf("error unmarshalling config: %w", err)
+		}
+
+		// Override log level
+		if logLevel != "" {
+			Cfg.LogLevel = logLevel
 		}
 	})
-	return Cfg
+	return
 }

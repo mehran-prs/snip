@@ -8,34 +8,24 @@ import (
 	"strings"
 )
 
-const (
-	prefix    = "_"
-	delimiter = "."
-	separator = "__"
-	structTag = "cfg" // the tag on the config struct that we use to map config path to the struct fields.
-)
-
 type Config struct {
-	SnippetsDir       string
-	FileViewerCMD     CommandConfig
-	MarkdownViewerCMD CommandConfig
-	Editor            string
-	Git               string
-	Exclude           []string // exclude dirs/files. e.g., .git, .idea,...
+	SnippetsDir       string        `cfg:"snippets_dir"`
+	FileViewerCMD     CommandConfig `cfg:"file_viewer"`
+	MarkdownViewerCMD CommandConfig `cfg:"markdown_viewer"`
+	Editor            string        `cfg:"editor"`
+	Git               string        `cfg:"git"`
+	Exclude           []string      `cfg:"exclude"` // exclude dirs/files. e.g., .git, .idea,...
+	LogLevel          string        `cfg:"log_level"`
 }
 
 type CommandConfig struct {
-	Name string
-	Args []string
+	Name string   `cfg:"name"`
+	Args []string `cfg:"args"`
 }
 
 func defaultConfig() *Config {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		home = "/"
-	}
 	return &Config{
-		SnippetsDir: path.Join(home, "snippets"),
+		SnippetsDir: path.Join(userHomeDir(), "snippets"),
 		FileViewerCMD: CommandConfig{
 			Name: "bat",
 			Args: []string{"--style", "plain", "--paging", "never"},
