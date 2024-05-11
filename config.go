@@ -9,13 +9,14 @@ import (
 )
 
 type Config struct {
-	SnippetsDir       string        `cfg:"snippets_dir"`
+	Dir               string        `cfg:"dir"` // Snippets dir.
 	FileViewerCMD     CommandConfig `cfg:"file_viewer"`
 	MarkdownViewerCMD CommandConfig `cfg:"markdown_viewer"`
 	Editor            string        `cfg:"editor"`
 	Git               string        `cfg:"git"`
 	Exclude           []string      `cfg:"exclude"` // exclude dirs/files. e.g., .git, .idea,...
 	LogLevel          string        `cfg:"log_level"`
+	LogTmpFileName    string        `cfg:"log_tmp_file"`
 }
 
 type CommandConfig struct {
@@ -25,7 +26,7 @@ type CommandConfig struct {
 
 func defaultConfig() *Config {
 	return &Config{
-		SnippetsDir: path.Join(userHomeDir(), "snippets"),
+		Dir: path.Join(userHomeDir(), "snippets"),
 		FileViewerCMD: CommandConfig{
 			Name: "bat",
 			Args: []string{"--style", "plain", "--paging", "never"},
@@ -50,8 +51,8 @@ func (c *Config) ViewerCmd(fpath string) *exec.Cmd {
 
 func (c *Config) SnippetPath(name string) string {
 	fname := name
-	if !strings.HasPrefix(name, c.SnippetsDir) {
-		fname = path.Join(c.SnippetsDir, name)
+	if !strings.HasPrefix(name, c.Dir) {
+		fname = path.Join(c.Dir, name)
 	}
 
 	stat, err := os.Stat(fname)

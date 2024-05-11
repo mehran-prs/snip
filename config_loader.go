@@ -3,15 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
-	"github.com/knadh/koanf/parsers/yaml"
-	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/structs"
 	"github.com/knadh/koanf/v2"
 )
 
 const (
+	prefix    = "SNIP_"
 	delimiter = "."
 	separator = "__"
 	structTag = "cfg" // the tag on the config struct that we use to map config path to the struct fields.
@@ -28,7 +29,14 @@ func userHomeDir() string {
 	return home
 }
 
-func loadConfig(configFile string, logLevel string) (err error) {
+// SNIP_DEBUG: debug
+// SNIP_ABC__DEF: abc.def
+func envToPathConverter(source string) string {
+	base := strings.ToLower(strings.TrimPrefix(source, prefix))
+	return strings.ReplaceAll(base, separator, delimiter)
+}
+
+func loadConfig() (err error) {
 	cfgOnce.Do(func() {
 		k := koanf.New(delimiter)
 
@@ -38,23 +46,14 @@ func loadConfig(configFile string, logLevel string) (err error) {
 			return
 		}
 
-		// load from config file
-		if err = k.Load(file.Provider(configFile), yaml.Parser()); err != nil {
-			if !os.IsNotExist(err) { // Ignore and just log it
-				err = fmt.Errorf("can not load config file %s: %w", configFile, err)
-				return
-			}
-			Debug("config file not found, ignoring it.", "file:", configFile)
+		// load default environment variables config
+		if err := k.Load(env.Provider(prefix, delimiter, envToPathConverter), nil); err != nil {
+			Warn("error loading environment variables", "err", err)
 		}
 
 		Cfg = &Config{}
 		if err = k.UnmarshalWithConf("", Cfg, koanf.UnmarshalConf{Tag: structTag}); err != nil {
 			err = fmt.Errorf("error unmarshalling config: %w", err)
-		}
-
-		// Override log level
-		if logLevel != "" {
-			Cfg.LogLevel = logLevel
 		}
 	})
 	return

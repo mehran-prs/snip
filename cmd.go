@@ -3,18 +3,15 @@ package main
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
 
-func cobraAutoCompleteFileName(_ *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return AutoCompleteFileName(Cfg.SnippetsDir, Cfg.Exclude, toComplete)
+func cobraAutoCompleteFileName(cmd *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	Error("cfg Dir: ", Cfg.Dir, "os Args: ", os.Args)
+	return AutoCompleteFileName(Cfg.Dir, Cfg.Exclude, toComplete)
 }
-
-var flagConfigFile string
-var flagLogLevel string
 
 var completionCmd = &cobra.Command{
 	Use:                   "completion [bash|zsh|fish|powershell]",
@@ -27,20 +24,21 @@ var completionCmd = &cobra.Command{
 }
 
 var rootCmd = &cobra.Command{
-	Use:               "snip",
-	Short:             "snip is a snippet manager on the command line.",
-	Long:              `snip is a snippet manager on the command line.`,
-	Args:              cobra.ExactArgs(1),
-	RunE:              CmdViewSnippet,
-	PersistentPreRunE: boot,
-	ValidArgsFunction: cobraAutoCompleteFileName,
+	Use:                "snip",
+	Short:              "snip is a snippet manager on the command line.",
+	Long:               `snip is a snippet manager on the command line.`,
+	Args:               cobra.ExactArgs(1),
+	RunE:               CmdViewSnippet,
+	PersistentPreRunE:  boot,
+	PersistentPostRunE: shutdown,
+	ValidArgsFunction:  cobraAutoCompleteFileName,
 }
 
 var dirCmd = &cobra.Command{
 	Use:   "dir [subPath]",
 	Short: "cd into the snippets directory",
 	Args:  cobra.MaximumNArgs(1),
-	RunE:  CmdGoToSnippetsDir,
+	RunE:  CmdSnippetsDir,
 }
 
 var openCmd = &cobra.Command{
@@ -71,8 +69,6 @@ var editorCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&flagConfigFile, "config", "c", "", "config file (default is $HOME/.cobra.yaml)")
-	rootCmd.PersistentFlags().StringVarP(&flagLogLevel, "log", "l", "", "Set log level. default is warning. values: debug,info,warn,error")
 	rootCmd.AddCommand(completionCmd, dirCmd, openCmd, pullCmd, pushCmd, editorCmd)
 }
 
@@ -85,21 +81,21 @@ func run() {
 
 // boot boots the app. it loads config for us.
 func boot(_ *cobra.Command, _ []string) error {
-	// Set log level if it's given as a flag
-	if flagLogLevel != "" {
-		SetLogLevel(LogLevelFromString(flagLogLevel))
-	}
-
-	if flagConfigFile == "" {
-		flagConfigFile = path.Join(userHomeDir(), ".snip/config.yaml")
-	}
-
-	if err := loadConfig(flagConfigFile, flagLogLevel); err != nil {
+	if err := loadConfig(); err != nil {
 		return err
 	}
 
-	SetLogLevel(LogLevelFromString(Cfg.LogLevel))
+	// Init Logger
+	l, err := NewLogger(Cfg.LogTmpFileName, LogLevelFromString(Cfg.LogLevel))
+	if err != nil {
+		return err
+	}
+
+	SetGlobalLogger(l)
 	return nil
+}
+func shutdown(_ *cobra.Command, _ []string) error {
+	return GlobalLogger().Shutdown()
 }
 
 func CmdCompletionGenerator(cmd *cobra.Command, args []string) error {
@@ -133,13 +129,13 @@ func CmdViewSnippet(_ *cobra.Command, args []string) error {
 	return Cfg.ViewerCmd(Cfg.SnippetPath(args[0])).Run()
 }
 
-func CmdGoToSnippetsDir(_ *cobra.Command, args []string) error {
+func CmdSnippetsDir(_ *cobra.Command, args []string) error {
 	subPath := ""
 	if len(args) != 0 {
 		subPath = filepath.Dir(args[0])
 	}
 
-	fmt.Print(filepath.Join(Cfg.SnippetsDir, subPath))
+	fmt.Println(filepath.Join(Cfg.Dir, subPath))
 	return nil
 }
 
@@ -155,7 +151,7 @@ func CmdOpenSnippet(_ *cobra.Command, args []string) error {
 }
 
 func CmdPullSnippets(_ *cobra.Command, args []string) error {
-	return Command(Cfg.Git, "-C", Cfg.SnippetsDir, "pull", "origin").Run()
+	return Command(Cfg.Git, "-C", Cfg.Dir, "pull", "origin").Run()
 }
 
 func CmdPushSnippets(_ *cobra.Command, args []string) error {
@@ -164,14 +160,14 @@ func CmdPushSnippets(_ *cobra.Command, args []string) error {
 		msg = args[0]
 	}
 
-	err := Command(Cfg.Git, "-C", Cfg.SnippetsDir, "commit", "-Am", msg).Run()
+	err := Command(Cfg.Git, "-C", Cfg.Dir, "commit", "-Am", msg).Run()
 	if err != nil {
 		return err
 	}
 
-	return Command(Cfg.Git, "-C", Cfg.SnippetsDir, "push", "origin").Run()
+	return Command(Cfg.Git, "-C", Cfg.Dir, "push", "origin").Run()
 }
 
 func CmdOpenEditor(_ *cobra.Command, args []string) error {
-	return Command(Cfg.Editor, Cfg.SnippetsDir).Run()
+	return Command(Cfg.Editor, Cfg.Dir).Run()
 }
