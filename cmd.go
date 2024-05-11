@@ -109,10 +109,9 @@ func CmdCompletionGenerator(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		fmt.Print("\n\n")
+
 		// In zsh we support fzf too:
-		if err := WriteAutocompleteScript(os.Stdout, "fzf.zsh"); err != nil {
-			return err
-		}
+		fmt.Println(genFzfZshCompletion(cmd.Root().Name()))
 	case "fish":
 		if err := cmd.Root().GenFishCompletion(os.Stdout, true); err != nil {
 			return err
