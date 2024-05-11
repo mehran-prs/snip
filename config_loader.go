@@ -31,12 +31,14 @@ func userHomeDir() string {
 
 // SNIP_DEBUG: debug
 // SNIP_ABC__DEF: abc.def
-func envToPathConverter(source string) string {
-	base := strings.ToLower(strings.TrimPrefix(source, prefix))
-	return strings.ReplaceAll(base, separator, delimiter)
+func envToPathConverter(prefix string) func(string) string {
+	return func(source string) string {
+		base := strings.ToLower(strings.TrimPrefix(source, prefix))
+		return strings.ReplaceAll(base, separator, delimiter)
+	}
 }
 
-func loadConfig() (err error) {
+func loadConfig(envPrefix string) (err error) {
 	cfgOnce.Do(func() {
 		k := koanf.New(delimiter)
 
@@ -47,7 +49,7 @@ func loadConfig() (err error) {
 		}
 
 		// load default environment variables config
-		if err := k.Load(env.Provider(prefix, delimiter, envToPathConverter), nil); err != nil {
+		if err := k.Load(env.Provider(envPrefix, delimiter, envToPathConverter(envPrefix)), nil); err != nil {
 			Warn("error loading environment variables", "err", err)
 		}
 

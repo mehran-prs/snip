@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -80,8 +81,13 @@ func run() {
 }
 
 // boot boots the app. it loads config for us.
-func boot(_ *cobra.Command, _ []string) error {
-	if err := loadConfig(); err != nil {
+func boot(cmd *cobra.Command, _ []string) error {
+	envPrefix := prefix
+	if os.Getenv("SNIP_APP_NAME_AS_ENV_PREFIX") == "true" {
+		envPrefix = strings.ToUpper(cmd.Root().Name()) + "_" // e.g., SNIP_
+	}
+
+	if err := loadConfig(envPrefix); err != nil {
 		return err
 	}
 
