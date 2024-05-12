@@ -9,32 +9,14 @@ import (
 )
 
 type Config struct {
-	Dir               string        `cfg:"dir"` // Snippets dir.
-	FileViewerCMD     CommandConfig `cfg:"file_viewer"`
-	MarkdownViewerCMD CommandConfig `cfg:"markdown_viewer"`
-	Editor            string        `cfg:"editor"`
-	Git               string        `cfg:"git"`
-	Exclude           []string      `cfg:"exclude"` // exclude dirs/files. e.g., .git, .idea,...
-	LogLevel          string        `cfg:"log_level"`
-	LogTmpFileName    string        `cfg:"log_tmp_file"`
-}
-
-type CommandConfig struct {
-	Name string   `cfg:"name"`
-	Args []string `cfg:"args"`
-}
-
-func defaultConfig() *Config {
-	return &Config{
-		Dir: path.Join(userHomeDir(), "snippets"),
-		FileViewerCMD: CommandConfig{
-			Name: "bat",
-			Args: []string{"--style", "plain", "--paging", "never"},
-		},
-		MarkdownViewerCMD: CommandConfig{Name: "glow"},
-		Editor:            os.Getenv("EDITOR"),
-		Git:               "git",
-	}
+	Dir               string   `cfg:"dir"` // Snippets dir.
+	FileViewerCMD     []string `cfg:"file_viewer"`
+	MarkdownViewerCMD []string `cfg:"markdown_viewer"`
+	Editor            string   `cfg:"editor"`
+	Git               string   `cfg:"git"`
+	Exclude           []string `cfg:"exclude"` // exclude dirs/files. e.g., .git, .idea,...
+	Verbose           bool     `json:"verbose"`
+	LogTmpFileName    string   `cfg:"log_tmp_file"`
 }
 
 func (c *Config) ViewerCmd(fpath string) *exec.Cmd {
@@ -44,7 +26,7 @@ func (c *Config) ViewerCmd(fpath string) *exec.Cmd {
 		params = c.MarkdownViewerCMD
 	}
 
-	cmd := Command(params.Name, params.Args...)
+	cmd := Command(params[0], params[1:]...)
 	cmd.Args = append(cmd.Args, fpath)
 	return cmd
 }

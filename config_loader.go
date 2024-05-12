@@ -3,20 +3,12 @@ package main
 import (
 	"fmt"
 	"os"
+	"path"
 	"strings"
 	"sync"
-
-	"github.com/knadh/koanf/providers/env"
-	"github.com/knadh/koanf/providers/structs"
-	"github.com/knadh/koanf/v2"
 )
 
-const (
-	prefix    = "SNIP_"
-	delimiter = "."
-	separator = "__"
-	structTag = "cfg" // the tag on the config struct that we use to map config path to the struct fields.
-)
+const prefix = "SNIP_"
 
 var cfgOnce sync.Once // Singleton config instance.
 var Cfg *Config
@@ -26,41 +18,46 @@ func userHomeDir() string {
 	if err != nil {
 		home = "/"
 	}
+
 	return home
 }
 
-// SNIP_DEBUG: debug
-// SNIP_ABC__DEF: abc.def
-func envToPathConverter(prefix string) func(string) string {
-	return func(source string) string {
-		base := strings.ToLower(strings.TrimPrefix(source, prefix))
-		return strings.ReplaceAll(base, separator, delimiter)
-	}
-}
-
 func loadConfig(envPrefix string) (err error) {
+	env := func(name string, def ...string) string {
+		return defaultStr(os.Getenv(strings.ToUpper(envPrefix+name)), def...)
+	}
 	cfgOnce.Do(func() {
-		k := koanf.New(delimiter)
+		Cfg = &Config{
+			Dir:            env("dir", path.Join(userHomeDir(), "snippets")),
+			Editor:         env("editor", "vim"),
+			Verbose:        env("verbose", "") != "",
+			LogTmpFileName: env("log_tmp_file"),
+		}
 
-		// load default configuration from default function
-		if err = k.Load(structs.Provider(defaultConfig(), structTag), nil); err != nil {
-			err = fmt.Errorf("error loading default: %w", err)
+		if exclude := env("exclude", ".git,.idea"); exclude != "" {
+			Cfg.Exclude = LowerAll(strings.Split(exclude, ",")...)
+		}
+
+		Cfg.FileViewerCMD, err = parseCommand(env("file_viewer_cmd", "bat --style plain --paging never"))
+		if err != nil {
+			return
+		}
+		Cfg.MarkdownViewerCMD, err = parseCommand(env("markdown_viewer_cmd", "glow"))
+		if err != nil {
 			return
 		}
 
-		// load default environment variables config
-		if err := k.Load(env.Provider(envPrefix, delimiter, envToPathConverter(envPrefix)), nil); err != nil {
-			Warn("error loading environment variables", "err", err)
+		// Validation
+		if len(Cfg.FileViewerCMD) == 0 || len(Cfg.MarkdownViewerCMD) == 0 {
+			err = fmt.Errorf(
+				`invalid viewer commands. file viwer cmd: %s, markdown view cmd: %s`,
+				Cfg.FileViewerCMD,
+				Cfg.MarkdownViewerCMD,
+			)
+			return
 		}
-
-		Cfg = &Config{}
-		if err = k.UnmarshalWithConf("", Cfg, koanf.UnmarshalConf{Tag: structTag}); err != nil {
-			err = fmt.Errorf("error unmarshalling config: %w", err)
-		}
-
-		// Special changes:
-		// make exclude list lowercase:
-		Cfg.Exclude = LowerAll(Cfg.Exclude...)
 	})
+
+	Verbose("Config: ", fmt.Sprintf("%#v", Cfg))
 	return
 }

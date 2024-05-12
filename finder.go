@@ -5,8 +5,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-
-	"github.com/labstack/gommon/color"
 )
 
 // baseName is like filepath.Base but returns empty string in the following cases:
@@ -21,6 +19,8 @@ func baseName(name string) string {
 }
 
 func findFiles(root string, search string, exclude []string, prepend string) ([]string, error) {
+	Verbose("find files ", "root: ", root, "search: ", search, "exclude: ", exclude, "prepend: ", prepend)
+
 	root = strings.ToLower(root)
 	search = strings.ToLower(search)
 	prepend = strings.ToLower(prepend)
@@ -47,7 +47,7 @@ func findFiles(root string, search string, exclude []string, prepend string) ([]
 		if strings.Contains(path, search) || search == "" {
 			res := filepath.Join(prepend, strings.TrimSuffix(path, ".md")) // Remove .md from end of markdown files.
 			if info.IsDir() {
-				res = color.Bold(color.Cyan(res)) + "/" // change style of directories (colorize and append / to them)
+				res = res + "/" // change style of directories (colorize and append / to them)
 			}
 
 			result = append(result, res)

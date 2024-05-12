@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const Version = "" // fill-in at compile time.
+
 func cobraAutoCompleteFileName(_ *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	dir := Cfg.Dir
 	exclude := Cfg.Exclude
@@ -28,7 +30,6 @@ func cobraAutoCompleteFileName(_ *cobra.Command, _ []string, toComplete string) 
 var completionCmd = &cobra.Command{
 	Use:                   "completion [bash|zsh|fish|powershell]",
 	Short:                 "Generate completion script",
-	Long:                  completionDocs(rootCmd.Root().Name()),
 	DisableFlagsInUseLine: true,
 	ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
 	Args:                  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
@@ -75,8 +76,14 @@ var editorCmd = &cobra.Command{
 	RunE:  CmdOpenEditor,
 }
 
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print the version",
+	Run:   func(cmd *cobra.Command, args []string) { fmt.Println(defaultStr(Version, "unknown")) },
+}
+
 func init() {
-	rootCmd.AddCommand(completionCmd, dirCmd, openCmd, syncCmd, editorCmd)
+	rootCmd.AddCommand(completionCmd, dirCmd, openCmd, syncCmd, editorCmd, versionCmd)
 }
 
 func run() {
@@ -98,17 +105,17 @@ func boot(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Init Logger
-	l, err := NewLogger(Cfg.LogTmpFileName, LogLevelFromString(Cfg.LogLevel))
-	if err != nil {
-		return err
+	if Cfg.LogTmpFileName != "" {
+		if err := setLoggerFile(Cfg.LogTmpFileName); err != nil {
+			return nil
+		}
 	}
 
-	SetGlobalLogger(l)
 	return nil
 }
 
 func shutdown(_ *cobra.Command, _ []string) error {
-	return GlobalLogger().Shutdown()
+	return CloseLoggerFile(os.Stderr)
 }
 
 func CmdCompletionGenerator(cmd *cobra.Command, args []string) error {
@@ -117,13 +124,15 @@ func CmdCompletionGenerator(cmd *cobra.Command, args []string) error {
 		if err := cmd.Root().GenBashCompletionV2(os.Stdout, true); err != nil {
 			return err
 		}
+		// In bash, we support fzf too:
+		fmt.Println(genFzfBashCompletion(cmd.Root().Name()))
 	case "zsh":
 		if err := cmd.Root().GenZshCompletion(os.Stdout); err != nil {
 			return err
 		}
 		fmt.Print("\n\n")
 
-		// In zsh we support fzf too:
+		// In zsh, we support fzf too:
 		fmt.Println(genFzfZshCompletion(cmd.Root().Name()))
 	case "fish":
 		if err := cmd.Root().GenFishCompletion(os.Stdout, true); err != nil {
@@ -168,12 +177,12 @@ func CmdSync(_ *cobra.Command, args []string) error {
 		msg = args[0]
 	}
 
-	Info("pull new chnages")
+	fmt.Println("pull new changes")
 	if err := Command(Cfg.Git, "-C", Cfg.Dir, "pull", "origin").Run(); err != nil {
 		return err
 	}
 
-	Info("Add new changes to the git index")
+	fmt.Println("Add new changes to the git index")
 	if err := Command(Cfg.Git, "-C", Cfg.Dir, "add", "-A").Run(); err != nil {
 		return err
 	}
@@ -186,12 +195,13 @@ func CmdSync(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	Info("commit new changes")
+	fmt.Println("commit new changes")
 	err := Command(Cfg.Git, "-C", Cfg.Dir, "commit", "-m", msg).Run()
 	if err != nil {
 		return err
 	}
-	Info("Push changes")
+
+	fmt.Println("Push changes")
 	return Command(Cfg.Git, "-C", Cfg.Dir, "push", "origin").Run()
 }
 
