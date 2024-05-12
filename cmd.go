@@ -1,17 +1,28 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-func cobraAutoCompleteFileName(cmd *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	Error("cfg Dir: ", Cfg.Dir, "os Args: ", os.Args)
-	return AutoCompleteFileName(Cfg.Dir, Cfg.Exclude, toComplete)
+func cobraAutoCompleteFileName(_ *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	dir := Cfg.Dir
+	exclude := Cfg.Exclude
+	searchDir := filepath.Dir(toComplete)
+	root := path.Join(dir, searchDir)
+	res, err := findFiles(root, baseName(toComplete), exclude, searchDir)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveError
+	}
+
+	return res, cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveNoFileComp
 }
 
 var completionCmd = &cobra.Command{
@@ -25,7 +36,7 @@ var completionCmd = &cobra.Command{
 }
 
 var rootCmd = &cobra.Command{
-	Use:                "snip",
+	Use:                "snip [command]",
 	Short:              "snip is a snippet manager on the command line.",
 	Long:               `snip is a snippet manager on the command line.`,
 	Args:               cobra.ExactArgs(1),
@@ -50,17 +61,12 @@ var openCmd = &cobra.Command{
 	ValidArgsFunction: cobraAutoCompleteFileName,
 }
 
-var pullCmd = &cobra.Command{
-	Use:   "pull",
-	Short: "pull the snippets from git",
-	RunE:  CmdPullSnippets,
-}
-
-var pushCmd = &cobra.Command{
-	Use:   "push",
-	Short: "push the snippets into the git repository",
+var syncCmd = &cobra.Command{
+	Use:   "sync",
+	Short: "sync the snippets changes with your git repository",
+	Long:  "Sync command first pull changes from yourb git repository and then commit and pushes your changes.",
 	Args:  cobra.MaximumNArgs(1),
-	RunE:  CmdPushSnippets,
+	RunE:  CmdSync,
 }
 
 var editorCmd = &cobra.Command{
@@ -70,12 +76,12 @@ var editorCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(completionCmd, dirCmd, openCmd, pullCmd, pushCmd, editorCmd)
+	rootCmd.AddCommand(completionCmd, dirCmd, openCmd, syncCmd, editorCmd)
 }
 
 func run() {
 	if err := rootCmd.Execute(); err != nil {
-		Error("app error", err)
+		Error("app error: ", err)
 		os.Exit(1)
 	}
 }
@@ -100,6 +106,7 @@ func boot(cmd *cobra.Command, _ []string) error {
 	SetGlobalLogger(l)
 	return nil
 }
+
 func shutdown(_ *cobra.Command, _ []string) error {
 	return GlobalLogger().Shutdown()
 }
@@ -155,21 +162,36 @@ func CmdOpenSnippet(_ *cobra.Command, args []string) error {
 	return Command(Cfg.Editor, fpath).Run()
 }
 
-func CmdPullSnippets(_ *cobra.Command, args []string) error {
-	return Command(Cfg.Git, "-C", Cfg.Dir, "pull", "origin").Run()
-}
-
-func CmdPushSnippets(_ *cobra.Command, args []string) error {
-	msg := "Update snippets"
+func CmdSync(_ *cobra.Command, args []string) error {
+	msg := "snip: Update snippets"
 	if len(args) > 0 {
 		msg = args[0]
 	}
 
-	err := Command(Cfg.Git, "-C", Cfg.Dir, "commit", "-Am", msg).Run()
-	if err != nil {
+	Info("pull new chnages")
+	if err := Command(Cfg.Git, "-C", Cfg.Dir, "pull", "origin").Run(); err != nil {
 		return err
 	}
 
+	Info("Add new changes to the git index")
+	if err := Command(Cfg.Git, "-C", Cfg.Dir, "add", "-A").Run(); err != nil {
+		return err
+	}
+
+	var exitErr *exec.ExitError
+	if err := Command(Cfg.Git, "-C", Cfg.Dir, "diff", "HEAD", "--quiet").Run(); err == nil {
+		fmt.Println("You don't have any changes since last push")
+		return nil
+	} else if !errors.As(err, &exitErr) || exitErr.ExitCode() != 1 {
+		return err
+	}
+
+	Info("commit new changes")
+	err := Command(Cfg.Git, "-C", Cfg.Dir, "commit", "-m", msg).Run()
+	if err != nil {
+		return err
+	}
+	Info("Push changes")
 	return Command(Cfg.Git, "-C", Cfg.Dir, "push", "origin").Run()
 }
 

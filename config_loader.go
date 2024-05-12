@@ -57,6 +57,10 @@ func loadConfig(envPrefix string) (err error) {
 		if err = k.UnmarshalWithConf("", Cfg, koanf.UnmarshalConf{Tag: structTag}); err != nil {
 			err = fmt.Errorf("error unmarshalling config: %w", err)
 		}
+
+		// Special changes:
+		// make exclude list lowercase:
+		Cfg.Exclude = LowerAll(Cfg.Exclude...)
 	})
 	return
 }

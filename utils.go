@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func Command(name string, args ...string) *exec.Cmd {
@@ -12,15 +13,10 @@ func Command(name string, args ...string) *exec.Cmd {
 	cmd.Stderr = os.Stderr
 	return cmd
 }
-
-func defaultVal(val string, def ...string) string {
-	if val != "" {
-		return val
+func LowerAll(vals ...string) []string {
+	res := make([]string, len(vals))
+	for i, v := range vals {
+		res[i] = strings.ToLower(v)
 	}
-	for _, d := range def {
-		if d != "" {
-			return d
-		}
-	}
-	return ""
+	return res
 }
