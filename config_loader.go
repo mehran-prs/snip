@@ -24,7 +24,7 @@ func userHomeDir() string {
 
 func loadConfig(envPrefix string) (err error) {
 	env := func(name string, def ...string) string {
-		return defaultStr(os.Getenv(strings.ToUpper(envPrefix+name)), def...)
+		return DefaultStr(os.Getenv(strings.ToUpper(envPrefix+name)), def...)
 	}
 	cfgOnce.Do(func() {
 		Cfg = &Config{

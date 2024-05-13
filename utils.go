@@ -24,7 +24,7 @@ func LowerAll(vals ...string) []string {
 	return res
 }
 
-func defaultStr(val string, def ...string) string {
+func DefaultStr(val string, def ...string) string {
 	if val != "" {
 		return val
 	}

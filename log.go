@@ -29,7 +29,7 @@ var (
 	logFileMu sync.Mutex
 )
 
-func setLoggerFile(filename string) error {
+func SetLoggerFile(filename string) error {
 	logFileMu.Lock()
 	defer logFileMu.Unlock()
 	oldFile := logFile

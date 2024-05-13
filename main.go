@@ -66,7 +66,7 @@ var editorCmd = &cobra.Command{
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version",
-	Run:   func(cmd *cobra.Command, args []string) { fmt.Println(defaultStr(Version, "unknown")) },
+	Run:   func(cmd *cobra.Command, args []string) { fmt.Println(DefaultStr(Version, "unknown")) },
 }
 
 func init() {
@@ -93,7 +93,7 @@ func boot(cmd *cobra.Command, _ []string) error {
 
 	// Init Logger
 	if Cfg.LogTmpFileName != "" {
-		if err := setLoggerFile(Cfg.LogTmpFileName); err != nil {
+		if err := SetLoggerFile(Cfg.LogTmpFileName); err != nil {
 			return nil
 		}
 	}
