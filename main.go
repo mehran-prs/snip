@@ -106,10 +106,14 @@ func shutdown(_ *cobra.Command, _ []string) error {
 }
 
 func cobraAutoCompleteFileName(_ *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	dir := Cfg.Dir
 	exclude := Cfg.Exclude
 	searchDir := filepath.Dir(toComplete)
-	root := path.Join(dir, searchDir)
+	root := path.Join(Cfg.Dir, searchDir)
+
+	if searchDir != "." && searchDir != "/" { // Currently we support exclude only on the root dir.
+		exclude = nil
+	}
+
 	res, err := findFiles(root, baseName(toComplete), exclude, searchDir)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveError

@@ -8,22 +8,27 @@ import (
 )
 
 // baseName is like filepath.Base but returns empty string in the following cases:
-// if name is just line-separator or ends with line-separator
+// if name is just line-separator or ends with line-separator, or it's a dot.
 // if name is an empty string
 func baseName(name string) string {
 	base := filepath.Base(name)
-	if len(name) == 0 || base == "/" || name[len(name)-1] == filepath.Separator {
+	if len(name) == 0 || base == "." || base == "/" || name[len(name)-1] == filepath.Separator {
 		return ""
 	}
 	return base
 }
 
-func findFiles(root string, search string, exclude []string, prepend string) ([]string, error) {
-	Verbose("find files ", "root: ", root, "search: ", search, "exclude: ", exclude, "prepend: ", prepend)
+func findFiles(root string, search string, exclude []string, searchResultPrepend string) ([]string, error) {
+	Verbose("find files ",
+		"root: ", root,
+		"search: ", search,
+		"exclude: ", exclude,
+		"search_result_prepend: ", searchResultPrepend,
+	)
 
 	root = strings.ToLower(root)
 	search = strings.ToLower(search)
-	prepend = strings.ToLower(prepend)
+	searchResultPrepend = strings.ToLower(searchResultPrepend)
 
 	root = strings.TrimSuffix(root, string(os.PathSeparator)) + string(os.PathSeparator)
 	var result []string
@@ -45,7 +50,7 @@ func findFiles(root string, search string, exclude []string, prepend string) ([]
 		}
 
 		if strings.Contains(path, search) || search == "" {
-			res := filepath.Join(prepend, strings.TrimSuffix(path, ".md")) // Remove .md from end of markdown files.
+			res := filepath.Join(searchResultPrepend, strings.TrimSuffix(path, ".md")) // Remove .md from end of markdown files.
 			if info.IsDir() {
 				res = res + "/" // change style of directories (colorize and append / to them)
 			}
