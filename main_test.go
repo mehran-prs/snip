@@ -144,38 +144,32 @@ func TestCmdSnippetsDir(t *testing.T) {
 	assertEqual(t, CmdSnippetsDir(nil, []string{"abc"}), nil)
 }
 
-func TestCmdOpenSnippet(t *testing.T) {
+func TestCmdEditSnippet(t *testing.T) {
 	tmpDir := t.TempDir()
 	Cfg = &Config{
 		Dir:    tmpDir,
 		Editor: "touch",
 	}
 
-	assertEqual(t, CmdOpenSnippet(nil, []string{"a.md"}), nil)
+	assertEqual(t, CmdEditSnippet(nil, []string{"a.md"}), nil)
 	_, err := os.Stat(path.Join(tmpDir, "a.md"))
 	assertEqual(t, err, nil)
 
-	assertEqual(t, CmdOpenSnippet(nil, []string{"a/b.md"}), nil)
+	assertEqual(t, CmdEditSnippet(nil, []string{"a/b.md"}), nil)
 	_, err = os.Stat(path.Join(tmpDir, "a/b.md"))
 	assertEqual(t, err, nil)
 
-	assertEqual(t, CmdOpenSnippet(nil, []string{"c"}), nil)
+	assertEqual(t, CmdEditSnippet(nil, []string{"c"}), nil)
 	_, err = os.Stat(path.Join(tmpDir, "c.md"))
 	assertEqual(t, err, nil)
 
-	assertEqual(t, CmdOpenSnippet(nil, []string{"c.yaml"}), nil)
+	assertEqual(t, CmdEditSnippet(nil, []string{"c.yaml"}), nil)
 	_, err = os.Stat(path.Join(tmpDir, "c.yaml"))
 	assertEqual(t, err, nil)
-}
 
-func TestCmdOpenEditor(t *testing.T) {
-	tmpDir := t.TempDir()
-	Cfg = &Config{
-		Dir:    path.Join(tmpDir, "a.yaml"),
-		Editor: "touch",
-	}
-
-	assertEqual(t, CmdOpenEditor(nil, nil), nil)
-	_, err := os.Stat(path.Join(tmpDir, "a.yaml"))
+	// Open snippets dir
+	Cfg.Dir = path.Join(tmpDir, "a.yaml")
+	assertEqual(t, CmdEditSnippet(nil, nil), nil)
+	_, err = os.Stat(path.Join(tmpDir, "a.yaml"))
 	assertEqual(t, err, nil)
 }

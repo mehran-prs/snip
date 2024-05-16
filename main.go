@@ -45,11 +45,12 @@ var dirCmd = &cobra.Command{
 	RunE:  CmdSnippetsDir,
 }
 
-var openCmd = &cobra.Command{
-	Use:               "open",
-	Short:             "open the snippet in the editor",
-	Args:              cobra.ExactArgs(1),
-	RunE:              CmdOpenSnippet,
+var editCmd = &cobra.Command{
+	Use:               "edit",
+	Short:             "Create|Edit the snippet in the editor",
+	Long:              "If do not provide any snippet name, it'll open the snippets directory in the editor",
+	Args:              cobra.MaximumNArgs(1),
+	RunE:              CmdEditSnippet,
 	ValidArgsFunction: cobraAutoCompleteFileName,
 }
 
@@ -61,12 +62,6 @@ var syncCmd = &cobra.Command{
 	RunE:  CmdSync,
 }
 
-var editorCmd = &cobra.Command{
-	Use:   "editor",
-	Short: "Opens the snippets directory in your editor",
-	RunE:  CmdOpenEditor,
-}
-
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version",
@@ -74,7 +69,7 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(completionCmd, dirCmd, openCmd, syncCmd, editorCmd, versionCmd)
+	rootCmd.AddCommand(completionCmd, dirCmd, editCmd, syncCmd, versionCmd)
 }
 
 func main() {
@@ -164,12 +159,15 @@ func CmdSnippetsDir(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func CmdOpenSnippet(_ *cobra.Command, args []string) error {
-	fpath := Cfg.SnippetPath(args[0])
+func CmdEditSnippet(_ *cobra.Command, args []string) error {
+	fpath := Cfg.Dir
+	if len(args) != 0 {
+		fpath = Cfg.SnippetPath(args[0])
 
-	// Make parent directories
-	if err := os.MkdirAll(filepath.Dir(fpath), 0777); err != nil {
-		return fmt.Errorf("can not create snippet directory: %w", err)
+		// Make parent directories
+		if err := os.MkdirAll(filepath.Dir(fpath), 0777); err != nil {
+			return fmt.Errorf("can not create snippet directory: %w", err)
+		}
 	}
 
 	return Command(Cfg.Editor, fpath).Run()
@@ -207,10 +205,6 @@ func CmdSync(_ *cobra.Command, args []string) error {
 
 	fmt.Println("Push changes")
 	return Command(Cfg.Git, "-C", Cfg.Dir, "push", "origin").Run()
-}
-
-func CmdOpenEditor(_ *cobra.Command, _ []string) error {
-	return Command(Cfg.Editor, Cfg.Dir).Run()
 }
 
 func CmdPrintVersion(*cobra.Command, []string) {
