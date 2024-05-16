@@ -77,8 +77,7 @@ jobs:
           NAME="snip_${VERSION}_${GOOS}_${GOARCH}"
           
           CGO_ENABLED=0 go build -v \
-          -ldflags "-X main.Version=`${VERSION}` -X main.Commit=`git rev-parse HEAD` -X main.Date=`date +'%FT%TZ%z'`" \
-          -o ${NAME} .
+          -ldflags "-X main.Version=`${VERSION}` -X main.Commit=`git rev-parse HEAD` -X main.Date=`date +'%FT%TZ%z'`" .
           
           if [[ "$GOOS" != "windows" ]]; then
             tar -czf "$NAME.tar.gz" snip 
