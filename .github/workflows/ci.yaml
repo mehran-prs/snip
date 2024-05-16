@@ -33,20 +33,20 @@ jobs:
     strategy:
       matrix:
         target:
-          - 'windows/amd64'
-          - 'windows/386'
-          - 'windows/arm64'
-          - 'linux/amd64'
-          - 'linux/386'
-          - 'linux/arm64'
-          - 'linux/arm'
+#          - 'windows/amd64'
+#          - 'windows/386'
+#          - 'windows/arm64'
+#          - 'linux/amd64'
+#          - 'linux/386'
+#          - 'linux/arm64'
+#          - 'linux/arm'
           - 'darwin/amd64'
-          - 'darwin/arm64'
-          - 'freebsd/386'
-          - 'freebsd/amd64'
-          - 'freebsd/arm'
-          - 'openbsd/amd64'
-          - 'openbsd/arm64'
+#          - 'darwin/arm64'
+#          - 'freebsd/386'
+#          - 'freebsd/amd64'
+#          - 'freebsd/arm'
+#          - 'openbsd/amd64'
+#          - 'openbsd/arm64'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -70,10 +70,12 @@ jobs:
           set -euo pipefail
           
           VERSION=${GITHUB_REF#refs/tags/v}
+          COMMIT=$(git rev-parse HEAD)
+          DATE=$(date +'%FT%TZ%z')
           NAME="snip_${VERSION}_${GOOS}_${GOARCH}"
           
           CGO_ENABLED=0 go build -v \
-          -ldflags "-X main.Version=`${VERSION}` -X main.Commit=`git rev-parse HEAD` -X main.Date=`date +'%FT%TZ%z'`" .
+          -ldflags "-X main.Version=$VERSION -X main.Commit=$COMMIT -X main.Date=$DATE" .
           
           if [[ "$GOOS" != "windows" ]]; then
             tar -czf "$NAME.tar.gz" snip 
