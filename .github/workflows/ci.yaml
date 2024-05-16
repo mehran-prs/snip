@@ -33,20 +33,20 @@ jobs:
     strategy:
       matrix:
         target:
-#          - 'windows/amd64'
-#          - 'windows/386'
-#          - 'windows/arm64'
-#          - 'linux/amd64'
-#          - 'linux/386'
-#          - 'linux/arm64'
-#          - 'linux/arm'
+          - 'windows/amd64'
+          - 'windows/386'
+          - 'windows/arm64'
+          - 'linux/amd64'
+          - 'linux/386'
+          - 'linux/arm64'
+          - 'linux/arm'
           - 'darwin/amd64'
           - 'darwin/arm64'
-#          - 'freebsd/386'
-#          - 'freebsd/amd64'
-#          - 'freebsd/arm'
-#          - 'openbsd/amd64'
-#          - 'openbsd/arm64'
+          - 'freebsd/386'
+          - 'freebsd/amd64'
+          - 'freebsd/arm'
+          - 'openbsd/amd64'
+          - 'openbsd/arm64'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
