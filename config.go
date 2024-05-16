@@ -48,7 +48,7 @@ func loadConfig(appPrefix string) (err error) {
 		}
 
 		if exclude := env("exclude", ".git,.idea"); exclude != "" {
-			Cfg.Exclude = LowerAll(strings.Split(exclude, ",")...)
+			Cfg.Exclude = strings.Split(exclude, ",")
 		}
 
 		Cfg.FileViewerCMD, err = parseCommand(env("file_viewer_cmd", "bat --style plain --paging never"))
