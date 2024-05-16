@@ -17,5 +17,4 @@ golangci-lint run ./...
 
 # build
 go build -o snip .
-
 ```
