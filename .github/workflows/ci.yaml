@@ -4,15 +4,9 @@ on:
     tags:
       - 'v*.*.*'
     branches:
-      - main
-      - ci
+      - '**'
   pull_request:
     types: [ opened, synchronize, reopened ]
-  workflow_dispatch:
-#    inputs:
-#      version:
-#        description: 'Release version'
-#        required: true
 
 permissions:
   contents: write
@@ -39,20 +33,20 @@ jobs:
     strategy:
       matrix:
         target:
-#          - 'windows/amd64'
-#          - 'windows/386'
-#          - 'windows/arm64'
-#          - 'linux/amd64'
-#          - 'linux/386'
-#          - 'linux/arm64'
-#          - 'linux/arm'
-#          - 'darwin/amd64'
+          - 'windows/amd64'
+          - 'windows/386'
+          - 'windows/arm64'
+          - 'linux/amd64'
+          - 'linux/386'
+          - 'linux/arm64'
+          - 'linux/arm'
+          - 'darwin/amd64'
           - 'darwin/arm64'
-#          - 'freebsd/386'
-#          - 'freebsd/amd64'
-#          - 'freebsd/arm'
-#          - 'openbsd/amd64'
-#          - 'openbsd/arm64'
+          - 'freebsd/386'
+          - 'freebsd/amd64'
+          - 'freebsd/arm'
+          - 'openbsd/amd64'
+          - 'openbsd/arm64'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -122,8 +116,6 @@ jobs:
           CHECKSUMS=snip_${VERSION}_checksums.txt
           sha256sum * > $CHECKSUMS
 
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-
       - name: Generate release notes
         id: release_notes
         run: |
@@ -141,11 +133,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-#          name: ${{ steps.checksums.outputs.version }}
           body_path: ${{ github.workspace }}/release-notes.txt
           files: |
             dist/*
-#          tag_name: ${{ steps.checksums.outputs.version }}
-          draft: true
-          prerelease: false
 
