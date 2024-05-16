@@ -137,7 +137,7 @@ jobs:
           cat $RELEASE_NOTES
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v4
+        uses: softprops/action-gh-release@v2
         with:
           name: ${{ steps.checksums.outputs.version }}
           body_path: ${{ github.workspace }}/release-notes.txt
