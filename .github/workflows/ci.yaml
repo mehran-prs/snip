@@ -72,7 +72,8 @@ jobs:
         run: |
           set -euo pipefail
           
-          VERSION=${GITHUB_REF#refs/tags/v}
+#          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION=draft
           NAME="snip_${VERSION}_${GOOS}_${GOARCH}"
           
           CGO_ENABLED=0 go build -a -v \
