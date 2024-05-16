@@ -33,7 +33,7 @@ func TestSetLoggerFile(t *testing.T) {
 	// Opening valid file
 	bytes := make([]byte, 100)
 	f, err := os.CreateTemp("", "abc")
-	assertTrue(t, err != nil)
+	assertEqual(t, err, nil)
 	defer func() {
 		_ = f.Close()
 		_ = os.Remove(f.Name())
@@ -42,7 +42,10 @@ func TestSetLoggerFile(t *testing.T) {
 	assertTrue(t, err == nil)
 	assertTrue(t, SetLoggerFile(f.Name()) == nil)
 	Error("a", "b")
-	f.Read(bytes)
+
+	_, err = f.Read(bytes)
+	assertEqual(t, err, nil)
+
 	assertTrue(t, strings.Contains(string(bytes), ": ab"))
 	assertTrue(t, CloseLoggerFile(os.Stderr) == nil)
 	// File must be closed now.

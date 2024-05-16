@@ -1,0 +1,64 @@
+run:
+  timeout: 5m
+
+issues:
+  exclude-dirs:
+    - lab
+
+linters-settings:
+  gofmt:
+    rewrite-rules:
+      - pattern: 'interface{}'
+        replacement: 'any'
+      - pattern: 'a[b:len(a)]'
+        replacement: 'a[b:]'
+  revive: # this is recommended config from [here](https://github.com/mgechev/revive#configuration)
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+      - name: increment-decrement
+      - name: var-naming
+        arguments:
+          - ["ID","HTTP","HTTPS","SQL","API","URL","URI"] # whitelist
+          - [] # blacklist
+      - name: var-declaration
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unused-parameter
+      - name: unreachable-code
+      - name: redefines-builtin-id
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment
+
+linters:
+  disable-all: true
+  enable:
+    - unused
+    - gofmt
+    - revive
+    - gosimple
+    - govet
+    - ineffassign
+    - exportloopref
+    - staticcheck
+    - unconvert
+    - unused
+    - misspell
+    - goimports
+    - errcheck
+

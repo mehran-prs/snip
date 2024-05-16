@@ -10,14 +10,14 @@ import (
 
 var logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
 
-func Verbose(v ...interface{}) {
+func Verbose(v ...any) {
 	if Cfg.Verbose {
 		_ = logger.Output(3, fmt.Sprint(v...))
 	}
 }
 
 // Error Log
-func Error(v ...interface{}) {
+func Error(v ...any) {
 	_ = logger.Output(3, "ERROR: "+fmt.Sprint(v...))
 }
 
@@ -52,11 +52,12 @@ func SetLoggerFile(filename string) error {
 func CloseLoggerFile(w io.Writer) error {
 	logFileMu.Lock()
 	defer logFileMu.Unlock()
-
 	if logFile == nil {
 		return nil
 	}
 
 	logger.SetOutput(w)
-	return logFile.Close()
+	oldLogFile := logFile
+	logFile = nil
+	return oldLogFile.Close()
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -90,7 +89,7 @@ func parseCommand(command string) ([]string, error) {
 	}
 
 	if state == "quotes" {
-		return []string{}, errors.New(fmt.Sprintf("Unclosed quote in command line: %s", command))
+		return []string{}, fmt.Errorf("unclosed quote in command line: %s", command)
 	}
 
 	if current != "" {

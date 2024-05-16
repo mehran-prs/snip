@@ -34,7 +34,6 @@ func TestBasename(t *testing.T) {
 
 func TestFindFiles(t *testing.T) {
 	searchDir := t.TempDir()
-	Cfg = &Config{Dir: searchDir}
 
 	paths := []string{
 		"check.txt",

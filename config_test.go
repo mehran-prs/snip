@@ -5,11 +5,27 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 )
 
+func setEnv(t *testing.T, key, value string) {
+	t.Helper()
+
+	oldVal := os.Getenv(key)
+	assertEqual(t, os.Setenv(key, value), nil)
+	t.Cleanup(func() {
+		assertEqual(t, os.Setenv(key, oldVal), nil)
+	})
+}
+
+func resetConfigOnce() {
+	cfgOnce = sync.Once{}
+}
+
 func TestLoadDefaultConfig(t *testing.T) {
-	os.Setenv("EDITOR", "abc")
+	defer resetConfigOnce()
+	setEnv(t, "EDITOR", "abc")
 	// Default Values
 	homeDir, err := os.UserHomeDir()
 	assertEqual(t, err, nil)
@@ -25,16 +41,17 @@ func TestLoadDefaultConfig(t *testing.T) {
 	assertEqual(t, Cfg.LogTmpFileName, "")
 }
 
-func TestLoadDConfig(t *testing.T) {
+func TestLoadConfig(t *testing.T) {
+	defer resetConfigOnce()
 	// Default Values
-	assertEqual(t, os.Setenv("TEST_DIR", "/ab/c"), nil)
-	assertEqual(t, os.Setenv("TEST_FILE_VIEWER_CMD", "touch a"), nil)
-	assertEqual(t, os.Setenv("TEST_MARKDOWN_VIEWER_CMD", "touch b"), nil)
-	assertEqual(t, os.Setenv("TEST_EDITOR", "vi"), nil)
-	assertEqual(t, os.Setenv("TEST_GIT", "abc"), nil)
-	assertEqual(t, os.Setenv("TEST_EXCLUDE", ".a,.b"), nil)
-	assertEqual(t, os.Setenv("TEST_VERBOSE", "TRUE"), nil)
-	assertEqual(t, os.Setenv("TEST_LOG_TMP_FILENAME", "abc.log"), nil)
+	setEnv(t, "TEST_DIR", "/ab/c")
+	setEnv(t, "TEST_FILE_VIEWER_CMD", "touch a")
+	setEnv(t, "TEST_MARKDOWN_VIEWER_CMD", "touch b")
+	setEnv(t, "TEST_EDITOR", "vi")
+	setEnv(t, "TEST_GIT", "abc")
+	setEnv(t, "TEST_EXCLUDE", ".a,.b")
+	setEnv(t, "TEST_VERBOSE", "TRUE")
+	setEnv(t, "TEST_LOG_TMP_FILENAME", "abc.log")
 
 	assertEqual(t, loadConfig("TEST_"), nil)
 
@@ -44,20 +61,31 @@ func TestLoadDConfig(t *testing.T) {
 	assertEqual(t, Cfg.Editor, "vi")
 	assertEqual(t, Cfg.Git, "abc")
 	assertEqualSlice(t, Cfg.Exclude, []string{".a", ".b"})
-	assertEqual(t, Cfg.Verbose, true)
+	assertTrue(t, Cfg.Verbose)
 	assertEqual(t, Cfg.LogTmpFileName, "abc.log")
+}
+
+func TestLoadConfigInheritance(t *testing.T) {
+	defer resetConfigOnce()
+	setEnv(t, "TEST_DIR", "/ab/c")
+	setEnv(t, "SNIP_DIR", "/ab/d")
+	setEnv(t, "SNIP_GIT", "abc")
+	assertEqual(t, loadConfig("TEST_"), nil)
+
+	assertEqual(t, Cfg.Dir, "/ab/c")
+	assertEqual(t, Cfg.Dir, "/ab/c")
 }
 
 func TestConfig_ViewerCmd(t *testing.T) {
 	Cfg = &Config{
 		MarkdownViewerCMD: []string{"abc", "def"},
-		FileViewerCMD:     []string{"123", "456"},
+		FileViewerCMD:     []string{"123"},
 	}
 
 	cmd := Cfg.ViewerCmd("abc.md")
 	assertEqualSlice(t, cmd.Args, []string{"abc", "def", "abc.md"})
 	cmd = Cfg.ViewerCmd("abc.yaml")
-	assertEqualSlice(t, cmd.Args, []string{"123", "456", "abc.yaml"})
+	assertEqualSlice(t, cmd.Args, []string{"123", "abc.yaml"})
 }
 
 func TestConfig_SnippetPath(t *testing.T) {

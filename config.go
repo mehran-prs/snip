@@ -26,9 +26,12 @@ type Config struct {
 	LogTmpFileName    string
 }
 
-func loadConfig(envPrefix string) (err error) {
+func loadConfig(appPrefix string) (err error) {
 	env := func(name string, def ...string) string {
-		return DefaultStr(os.Getenv(strings.ToUpper(envPrefix+name)), def...)
+		return DefaultStr(
+			os.Getenv(strings.ToUpper(appPrefix+name)),
+			append([]string{os.Getenv(strings.ToUpper(prefix + name))}, def...)...,
+		)
 	}
 	cfgOnce.Do(func() {
 		var homeDir string

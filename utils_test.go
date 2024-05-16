@@ -14,6 +14,7 @@ func assertEqual[T comparable](t *testing.T, a, b T) {
 		t.Errorf(" two values are not equal. a: %v, b: %v", a, b)
 	}
 }
+
 func assertEqualSlice[T ~[]E, E comparable](t *testing.T, a, b T) {
 	t.Helper()
 

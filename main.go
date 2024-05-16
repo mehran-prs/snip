@@ -66,7 +66,7 @@ var editorCmd = &cobra.Command{
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version",
-	Run:   func(cmd *cobra.Command, args []string) { fmt.Println(DefaultStr(Version, "unknown")) },
+	Run:   func(*cobra.Command, []string) { fmt.Println(DefaultStr(Version, "unknown")) },
 }
 
 func init() {
@@ -82,11 +82,7 @@ func main() {
 
 // boot boots the app. it loads config for us.
 func boot(cmd *cobra.Command, _ []string) error {
-	envPrefix := prefix
-	if os.Getenv("SNIP_APP_NAME_AS_ENV_PREFIX") == "true" {
-		envPrefix = strings.ToUpper(cmd.Root().Name()) + "_" // e.g., SNIP_
-	}
-
+	envPrefix := strings.ToUpper(cmd.Root().Name()) + "_" // e.g., SNIP_
 	if err := loadConfig(envPrefix); err != nil {
 		return err
 	}
@@ -209,6 +205,6 @@ func CmdSync(_ *cobra.Command, args []string) error {
 	return Command(Cfg.Git, "-C", Cfg.Dir, "push", "origin").Run()
 }
 
-func CmdOpenEditor(_ *cobra.Command, args []string) error {
+func CmdOpenEditor(_ *cobra.Command, _ []string) error {
 	return Command(Cfg.Editor, Cfg.Dir).Run()
 }
