@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 )
 
 func Command(name string, args ...string) *exec.Cmd {
@@ -13,14 +12,6 @@ func Command(name string, args ...string) *exec.Cmd {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd
-}
-
-func LowerAll(vals ...string) []string {
-	res := make([]string, len(vals))
-	for i, v := range vals {
-		res[i] = strings.ToLower(v)
-	}
-	return res
 }
 
 func DefaultStr(val string, def ...string) string {

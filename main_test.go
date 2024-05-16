@@ -9,7 +9,7 @@ import (
 )
 
 func TestBoot(t *testing.T) {
-	defer resetConfigOnce()
+	defer resetConfig()
 
 	cmd := &cobra.Command{}
 	setEnv(t, prefix+"DIR", "/a/b/c")
@@ -18,7 +18,7 @@ func TestBoot(t *testing.T) {
 }
 
 func TestBootAndShutdown(t *testing.T) {
-	defer resetConfigOnce()
+	defer resetConfig()
 	f, err := os.CreateTemp("", "abc")
 	assertEqual(t, err, nil)
 	defer func() {
@@ -44,6 +44,8 @@ func TestBootAndShutdown(t *testing.T) {
 }
 
 func TestCobraAutocompleteFilename(t *testing.T) {
+	defer resetConfig()
+
 	searchDir := t.TempDir()
 	Cfg = &Config{Dir: searchDir, Exclude: []string{".git"}}
 

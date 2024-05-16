@@ -19,12 +19,12 @@ func setEnv(t *testing.T, key, value string) {
 	})
 }
 
-func resetConfigOnce() {
+func resetConfig() {
 	cfgOnce = sync.Once{}
 }
 
 func TestLoadDefaultConfig(t *testing.T) {
-	defer resetConfigOnce()
+	defer resetConfig()
 	setEnv(t, "EDITOR", "abc")
 	// Default Values
 	homeDir, err := os.UserHomeDir()
@@ -42,7 +42,7 @@ func TestLoadDefaultConfig(t *testing.T) {
 }
 
 func TestLoadConfig(t *testing.T) {
-	defer resetConfigOnce()
+	defer resetConfig()
 	// Default Values
 	setEnv(t, "TEST_DIR", "/ab/c")
 	setEnv(t, "TEST_FILE_VIEWER_CMD", "touch a")
@@ -66,7 +66,7 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestLoadConfigInheritance(t *testing.T) {
-	defer resetConfigOnce()
+	defer resetConfig()
 	setEnv(t, "TEST_DIR", "/ab/c")
 	setEnv(t, "SNIP_DIR", "/ab/d")
 	setEnv(t, "SNIP_GIT", "abc")

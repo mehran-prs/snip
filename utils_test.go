@@ -55,10 +55,6 @@ func TestCommand(t *testing.T) {
 	assertEqual(t, stdout, os.Stdout)
 }
 
-func TestLowerAll(t *testing.T) {
-	assertEqualSlice(t, LowerAll("A", "a"), []string{"a", "a"})
-}
-
 func TestDefaultStr(t *testing.T) {
 	assertEqual(t, DefaultStr("", "b"), "b")
 	assertEqual(t, DefaultStr("a", "b"), "a")

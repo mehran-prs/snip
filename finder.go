@@ -26,14 +26,10 @@ func findFiles(root string, search string, exclude []string, searchResultPrepend
 		"search_result_prepend: ", searchResultPrepend,
 	)
 
-	root = strings.ToLower(root)
-	search = strings.ToLower(search)
-	searchResultPrepend = strings.ToLower(searchResultPrepend)
-
 	root = strings.TrimSuffix(root, string(os.PathSeparator)) + string(os.PathSeparator)
 	var result []string
 	walkFn := func(path string, info os.FileInfo, err error) error {
-		path = strings.ToLower(strings.TrimPrefix(path, root))
+		path = strings.TrimPrefix(path, root)
 		if err != nil {
 			return err
 		}
@@ -49,7 +45,7 @@ func findFiles(root string, search string, exclude []string, searchResultPrepend
 			return nil
 		}
 
-		if strings.Contains(path, search) || search == "" {
+		if strings.Contains(strings.ToLower(path), strings.ToLower(search)) || search == "" {
 			res := filepath.Join(searchResultPrepend, strings.TrimSuffix(path, ".md")) // Remove .md from end of markdown files.
 			if info.IsDir() {
 				res = res + "/" // change style of directories (colorize and append / to them)

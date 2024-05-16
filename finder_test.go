@@ -33,6 +33,8 @@ func TestBasename(t *testing.T) {
 }
 
 func TestFindFiles(t *testing.T) {
+	defer resetConfig()
+	Cfg = &Config{Verbose: false}
 	searchDir := t.TempDir()
 
 	paths := []string{

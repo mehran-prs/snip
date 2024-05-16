@@ -12,7 +12,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const Version = "" // fill-in at compile time.
+var (
+	Version = "" // fill-in at compile time.
+	Commit  = "" // fill-in at compile time.
+	Date    = "" // fill-in at compile time.
+)
 
 var completionCmd = &cobra.Command{
 	Use:                   "completion [bash|zsh|fish|powershell]",
@@ -66,7 +70,7 @@ var editorCmd = &cobra.Command{
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version",
-	Run:   func(*cobra.Command, []string) { fmt.Println(DefaultStr(Version, "unknown")) },
+	Run:   CmdPrintVersion,
 }
 
 func init() {
@@ -207,4 +211,10 @@ func CmdSync(_ *cobra.Command, args []string) error {
 
 func CmdOpenEditor(_ *cobra.Command, _ []string) error {
 	return Command(Cfg.Editor, Cfg.Dir).Run()
+}
+
+func CmdPrintVersion(*cobra.Command, []string) {
+	fmt.Println("Version: ", DefaultStr(Version, "unknown"))
+	fmt.Println("Commit: ", DefaultStr(Commit, "unknown"))
+	fmt.Println("Release Date: ", DefaultStr(Date, "unknown"))
 }
