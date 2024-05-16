@@ -77,7 +77,7 @@ jobs:
           NAME="snip_${VERSION}_${GOOS}_${GOARCH}"
           
           CGO_ENABLED=0 go build -a -v \
-          -ldflags '-X main.Version=`${VERSION}` -X main.Commit=`git rev-parse HEAD` -X main.Date=`date +'%FT%TZ%z'`'\
+          -ldflags "-X main.Version=`${VERSION}` -X main.Commit=`git rev-parse HEAD` -X main.Date=`date +'%FT%TZ%z'`"\
           -o ${NAME} .
           
           if [[ "$GOOS" != "windows" ]]; then
