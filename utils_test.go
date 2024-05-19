@@ -97,3 +97,8 @@ func TestParseCommand(t *testing.T) {
 		})
 	}
 }
+
+func TestJoinPaths(t *testing.T) {
+	assertEqual(t, "a/b/", JoinPaths("a", "b/"))
+	assertEqual(t, "a/b", JoinPaths("a", "b"))
+}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 )
 
 func Command(name string, args ...string) *exec.Cmd {
@@ -88,4 +89,17 @@ func parseCommand(command string) ([]string, error) {
 	}
 
 	return args, nil
+}
+
+// JoinPaths is just like path.Join method, but doesn't remove the last path separator from the joined paths.
+// e.g., JoinPaths("a","b/") returns "a/b/" insted of "a/b"
+func JoinPaths(elem ...string) string {
+	lastElem := elem[len(elem)-1]
+	appenPathSeparator := len(lastElem) != 0 && lastElem[len(lastElem)-1] == os.PathSeparator
+
+	res := path.Join(elem...)
+	if appenPathSeparator {
+		res = res + string(os.PathSeparator)
+	}
+	return res
 }

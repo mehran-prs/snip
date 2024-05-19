@@ -8,15 +8,20 @@ import (
 	"testing"
 )
 
+func assertExists(t *testing.T, basePath string, paths ...string) {
+	t.Helper()
+
+	for _, p := range paths {
+		_, err := os.Stat(path.Join(basePath, p))
+		assertEqual(t, err, nil)
+	}
+}
+
 func makeTree(t *testing.T, basePath string, files ...string) {
 	for _, f := range files {
-		appendLineSeparator := f[len(f)-1] == os.PathSeparator
-		f = path.Join(basePath, f)
-		if appendLineSeparator { // if file name ends with "/", add to res too.
-			f = f + string(os.PathSeparator)
-		}
-
+		f = JoinPaths(basePath, f)
 		assertEqual(t, os.MkdirAll(filepath.Dir(f), 0755), nil)
+
 		if f[len(f)-1] != os.PathSeparator {
 			assertEqual(t, os.WriteFile(f, []byte(fmt.Sprintf("The %s file", f)), 0644), nil)
 		}

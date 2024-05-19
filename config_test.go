@@ -30,7 +30,7 @@ func TestLoadDefaultConfig(t *testing.T) {
 	homeDir, err := os.UserHomeDir()
 	assertEqual(t, err, nil)
 
-	assertEqual(t, loadConfig("TEST_"), nil)
+	assertEqual(t, loadConfig("TEST", "TEST"), nil)
 	assertEqual(t, Cfg.Dir, path.Join(homeDir, "snippets"))
 	assertEqualSlice(t, Cfg.FileViewerCMD, []string{"bat", "--style", "plain", "--paging", "never"})
 	assertEqualSlice(t, Cfg.MarkdownViewerCMD, []string{"glow"})
@@ -53,7 +53,7 @@ func TestLoadConfig(t *testing.T) {
 	setEnv(t, "TEST_VERBOSE", "TRUE")
 	setEnv(t, "TEST_LOG_TMP_FILENAME", "abc.log")
 
-	assertEqual(t, loadConfig("TEST_"), nil)
+	assertEqual(t, loadConfig("TEST", "TEST"), nil)
 
 	assertEqual(t, Cfg.Dir, "/ab/c")
 	assertEqualSlice(t, Cfg.FileViewerCMD, []string{"touch", "a"})
@@ -70,7 +70,7 @@ func TestLoadConfigInheritance(t *testing.T) {
 	setEnv(t, "TEST_DIR", "/ab/c")
 	setEnv(t, "SNIP_DIR", "/ab/d")
 	setEnv(t, "SNIP_GIT", "abc")
-	assertEqual(t, loadConfig("TEST_"), nil)
+	assertEqual(t, loadConfig("TEST", "TEST"), nil)
 
 	assertEqual(t, Cfg.Dir, "/ab/c")
 	assertEqual(t, Cfg.Dir, "/ab/c")
