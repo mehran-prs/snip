@@ -1,4 +1,8 @@
 <p align="center">
+<img width="250" src="./docs/images/snip_logo.png"  alt="snip logo"/>
+</p>
+
+<p align="center">
   <a href="https://goreportcard.com/report/github.com/mehran-prs/snip">
     <img src="https://goreportcard.com/badge/github.com/mehran-prs/snip">
   </a>
@@ -16,7 +20,7 @@ Snip is a command-line snippet manager.
 ### Features
 
 - View your snippets on command line.
-- Manage(create|edit|View|Delete) your snippets using your favorite editor.
+- Manage (create|edit|Delete) your snippets using your favorite editor.
 - Auto-completion on the command-line for your snippet names (supports `bash`, `zsh`, `fish` and `powershell`).
 - Seamlessly integration with `fzf` to fuzzy find your snippets.
 - Render your snippets nicely (you can set your custom commands to render files)
@@ -34,7 +38,7 @@ Snip helps you manage snippets in cmd.
   you bash or zsh,
   you can find snippets by fuzzy search by typing `**` and pressing tab.
 
-![snip view snippets](./docs/screenshots/snip-view.gif)
+![snip view snippets](docs/images/snip-view.gif)
 
 #### Edit snippets (Create|Update|Delete)
 
@@ -42,7 +46,7 @@ Snip helps you manage snippets in cmd.
 - Run `snip edit {snippet_path}` to create|edit your snippet in your favorite editor.
 - Run `snip rm {snippet_path}` to remove a snippet. (use `-r` flag to remove recursively)
 
-![snip edit snippets](./docs/screenshots/snip-edit.gif)
+![snip edit snippets](docs/images/snip-edit.gif)
 
 ### Sync snippets changes with your remote git repository
 
@@ -56,7 +60,7 @@ git commit -m "{users_provided_message | default_message}"
 git push origin
 ```
 
-![snip sync snippets](./docs/screenshots/snip-sync.gif)
+![snip sync snippets](docs/images/snip-sync.gif)
 
 
 __Note__: before running `git sync` command for first time, you need to initialize git in your snippets directory and
