@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-const prefix = "SNIP_"
+const prefix = "SNIP" // Env prefix.
 
 var cfgOnce sync.Once // Singleton config instance.
 var Cfg *Config
@@ -26,11 +26,11 @@ type Config struct {
 	LogTmpFileName    string
 }
 
-func loadConfig(appPrefix string) (err error) {
+func loadConfig(globalPrefix string, appPrefix string) (err error) {
 	env := func(name string, def ...string) string {
 		return DefaultStr(
-			os.Getenv(strings.ToUpper(appPrefix+name)),
-			append([]string{os.Getenv(strings.ToUpper(prefix + name))}, def...)...,
+			os.Getenv(strings.ToUpper(appPrefix+"_"+name)),
+			append([]string{os.Getenv(strings.ToUpper(globalPrefix + "_" + name))}, def...)...,
 		)
 	}
 	cfgOnce.Do(func() {
@@ -71,7 +71,7 @@ func loadConfig(appPrefix string) (err error) {
 		}
 	})
 
-	Verbose("Config: ", fmt.Sprintf("%#v", Cfg))
+	Verbose("Prefix: ", prefix, " app_prefix: ", appPrefix, " Config: ", fmt.Sprintf("%#v", Cfg))
 	return
 }
 
@@ -90,11 +90,13 @@ func (c *Config) ViewerCmd(fname string) *exec.Cmd {
 func (c *Config) SnippetPath(name string) string {
 	fname := name
 	if !strings.HasPrefix(name, c.Dir) { // join the snippets dir with the file.
-		fname = path.Join(c.Dir, name)
+		fname = JoinPaths(c.Dir, name)
 	}
 
+	isDirName := len(fname) != 0 && fname[len(fname)-1] == os.PathSeparator
+
 	stat, err := os.Stat(fname)
-	if err == nil && !stat.IsDir() { // If file exists and is not a directory, return its name
+	if err == nil && (!stat.IsDir() || isDirName) { // If file exists and is not a directory, return its name
 		return fname
 	}
 

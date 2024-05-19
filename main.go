@@ -12,77 +12,99 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var appName string
+
 var (
 	Version = "" // fill-in at compile time.
 	Commit  = "" // fill-in at compile time.
 	Date    = "" // fill-in at compile time.
 )
 
-var completionCmd = &cobra.Command{
-	Use:                   "completion [bash|zsh|fish|powershell]",
-	Short:                 "Generate completion script",
-	DisableFlagsInUseLine: true,
-	ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
-	Args:                  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
-	RunE:                  CmdCompletionGenerator,
-}
-
-var rootCmd = &cobra.Command{
-	Use:                "snip [command]",
-	Short:              "snip is a snippet manager on the command line.",
-	Long:               `snip is a snippet manager on the command line.`,
-	Args:               cobra.ExactArgs(1),
-	RunE:               CmdViewSnippet,
-	PersistentPreRunE:  boot,
-	PersistentPostRunE: shutdown,
-	ValidArgsFunction:  cobraAutoCompleteFileName,
-}
-
-var dirCmd = &cobra.Command{
-	Use:   "dir [subPath]",
-	Short: "cd into the snippets directory",
-	Args:  cobra.MaximumNArgs(1),
-	RunE:  CmdSnippetsDir,
-}
-
-var editCmd = &cobra.Command{
-	Use:               "edit",
-	Short:             "Create|Edit the snippet in the editor",
-	Long:              "If do not provide any snippet name, it'll open the snippets directory in the editor",
-	Args:              cobra.MaximumNArgs(1),
-	RunE:              CmdEditSnippet,
-	ValidArgsFunction: cobraAutoCompleteFileName,
-}
-
-var syncCmd = &cobra.Command{
-	Use:   "sync",
-	Short: "sync the snippets changes with your git repository",
-	Long:  "Sync command first pull changes from yourb git repository and then commit and pushes your changes.",
-	Args:  cobra.MaximumNArgs(1),
-	RunE:  CmdSync,
-}
-
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print the version",
-	Run:   CmdPrintVersion,
-}
+var FlagRecursiveRemove = false
 
 func init() {
-	rootCmd.AddCommand(completionCmd, dirCmd, editCmd, syncCmd, versionCmd)
+	appName = DefaultStr(baseName(os.Args[0]), "snip")
+	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
 }
 
 func main() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := run(); err != nil {
 		Error("app error: ", err)
 		os.Exit(1)
 	}
 }
 
+func run() error {
+
+	var completionCmd = &cobra.Command{
+		Use:                   "completion [bash|zsh|fish|powershell]",
+		Short:                 "Generate completion script",
+		DisableFlagsInUseLine: true,
+		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
+		Args:                  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+		RunE:                  CmdCompletionGenerator,
+	}
+
+	var rootCmd = &cobra.Command{
+		Use:                fmt.Sprintf("%s [command]", appName),
+		Short:              fmt.Sprintf("%s is a snippet manager on the command line.", appName),
+		Long:               "The snip tool is a snippet manager on the command line.",
+		Args:               cobra.ExactArgs(1),
+		RunE:               CmdViewSnippet,
+		PersistentPreRunE:  boot,
+		PersistentPostRunE: shutdown,
+		ValidArgsFunction:  cobraAutoCompleteFileName,
+	}
+
+	var dirCmd = &cobra.Command{
+		Use:   "dir [subPath]",
+		Short: "prints the snippets directory",
+		Long:  "you can run 'cd $(snip dir)' to cd into your snippets directory.",
+		Args:  cobra.MaximumNArgs(1),
+		RunE:  CmdSnippetsDir,
+	}
+
+	var editCmd = &cobra.Command{
+		Use:               "edit",
+		Short:             "Create|Edit the snippet in the editor",
+		Long:              "If do not provide any snippet name, it'll open the snippets directory in the editor",
+		Args:              cobra.MaximumNArgs(1),
+		RunE:              CmdEditSnippet,
+		ValidArgsFunction: cobraAutoCompleteFileName,
+	}
+
+	var RemoveCmd = &cobra.Command{
+		Use:               "rm [-r] [file|dir(append a slash to it)]",
+		Short:             "Remove a snippet or directory",
+		Long:              `Removes a snippet file or a snippet directory. To specify a directory, append a '/' to it.`,
+		Args:              cobra.MaximumNArgs(1),
+		RunE:              CmdRemoveSnippet,
+		ValidArgsFunction: cobraAutoCompleteFileName,
+	}
+
+	var syncCmd = &cobra.Command{
+		Use:   "sync",
+		Short: "sync the snippets changes with your remote git repository",
+		Long:  "Sync command first pull changes from yourb git repository and then commit and pushes your changes.",
+		Args:  cobra.MaximumNArgs(1),
+		RunE:  CmdSync,
+	}
+
+	var versionCmd = &cobra.Command{
+		Use:   "version",
+		Short: "Print the version and build information",
+		Run:   CmdPrintVersion,
+	}
+
+	RemoveCmd.Flags().BoolVarP(&FlagRecursiveRemove, "recursive", "r", false, "Remove recursively")
+	rootCmd.AddCommand(completionCmd, dirCmd, editCmd, RemoveCmd, syncCmd, versionCmd)
+
+	return rootCmd.Execute()
+}
+
 // boot boots the app. it loads config for us.
 func boot(cmd *cobra.Command, _ []string) error {
-	envPrefix := strings.ToUpper(cmd.Root().Name()) + "_" // e.g., SNIP_
-	if err := loadConfig(envPrefix); err != nil {
+	if err := loadConfig(prefix, strings.ToUpper(cmd.Root().Name())); err != nil {
 		return err
 	}
 
@@ -173,6 +195,21 @@ func CmdEditSnippet(_ *cobra.Command, args []string) error {
 	return Command(Cfg.Editor, fpath).Run()
 }
 
+func CmdRemoveSnippet(_ *cobra.Command, args []string) error {
+	fpath := Cfg.SnippetPath(args[0])
+
+	f := os.Remove
+	if FlagRecursiveRemove {
+		f = os.RemoveAll
+	}
+	if err := f(fpath); err != nil {
+		return err
+	}
+
+	fmt.Printf("Removed: %s\n", fpath)
+	return nil
+}
+
 func CmdSync(_ *cobra.Command, args []string) error {
 	msg := "snip: Update snippets"
 	if len(args) > 0 {
@@ -210,5 +247,5 @@ func CmdSync(_ *cobra.Command, args []string) error {
 func CmdPrintVersion(*cobra.Command, []string) {
 	fmt.Println("Version: ", DefaultStr(Version, "unknown"))
 	fmt.Println("Commit: ", DefaultStr(Commit, "unknown"))
-	fmt.Println("Release Date: ", DefaultStr(Date, "unknown"))
+	fmt.Println("Build Date: ", DefaultStr(Date, "unknown"))
 }

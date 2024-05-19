@@ -12,7 +12,7 @@ func TestBoot(t *testing.T) {
 	defer resetConfig()
 
 	cmd := &cobra.Command{}
-	setEnv(t, prefix+"DIR", "/a/b/c")
+	setEnv(t, prefix+"_DIR", "/a/b/c")
 	assertEqual(t, boot(cmd, nil), nil)
 	assertEqual(t, Cfg.Dir, "/a/b/c")
 }
@@ -29,8 +29,8 @@ func TestBootAndShutdown(t *testing.T) {
 	cmd := &cobra.Command{Use: "test"}
 	setEnv(t, "TEST_DIR", "/a/b/c")
 	setEnv(t, "TEST_LOG_TMP_FILENAME", f.Name())
-	setEnv(t, prefix+"DIR", "/a/b/d")
-	setEnv(t, prefix+"GIT", "abc")
+	setEnv(t, prefix+"_DIR", "/a/b/d")
+	setEnv(t, prefix+"_GIT", "abc")
 	assertEqual(t, boot(cmd, nil), nil)
 	assertEqual(t, Cfg.Dir, "/a/b/c")
 	assertEqual(t, Cfg.Git, "abc")
@@ -172,4 +172,39 @@ func TestCmdEditSnippet(t *testing.T) {
 	assertEqual(t, CmdEditSnippet(nil, nil), nil)
 	_, err = os.Stat(path.Join(tmpDir, "a.yaml"))
 	assertEqual(t, err, nil)
+}
+
+func TestCmdRemoveSnippet(t *testing.T) {
+	tmpDir := t.TempDir()
+	Cfg = &Config{
+		Dir: tmpDir,
+	}
+	paths := []string{
+		"abc.txt",
+		"abc.md",
+		"/check/a.md",
+		"/check/b.md",
+		"/check/c.yaml",
+	}
+	makeTree(t, tmpDir, paths...)
+
+	assertEqual(t, CmdRemoveSnippet(nil, []string{"abc.txt"}), nil)
+	assertExists(t, tmpDir, "check/", "abc.md")
+
+	assertEqual(t, CmdRemoveSnippet(nil, []string{"abc"}), nil)
+	assertExists(t, tmpDir, "check/")
+
+	assertEqual(t, CmdRemoveSnippet(nil, []string{"/check/a.md"}), nil)
+	assertExists(t, tmpDir, "check/b.md", "/check/c.yaml")
+
+	assertTrue(t, CmdRemoveSnippet(nil, []string{"/check/"}) != nil)
+	assertExists(t, tmpDir, "check/b.md", "/check/c.yaml")
+
+	FlagRecursiveRemove = true
+	defer func() {
+		FlagRecursiveRemove = false // Reset it.
+	}()
+	assertEqual(t, CmdRemoveSnippet(nil, []string{"/check/"}), nil)
+	_, err := os.Stat(path.Join(tmpDir, "check/"))
+	assertTrue(t, os.IsNotExist(err))
 }
