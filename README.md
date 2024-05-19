@@ -34,7 +34,7 @@ Snip helps you manage snippets in cmd.
   you bash or zsh,
   you can find snippets by fuzzy search by typing `**` and pressing tab.
 
-![snip view snippets](./docs/screenshots/snip-view.gif | width=80)
+![snip view snippets](./docs/screenshots/snip-view.gif)
 
 #### Edit snippets (Create|Update|Delete)
 
