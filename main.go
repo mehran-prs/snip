@@ -145,8 +145,11 @@ func CmdCompletionGenerator(cmd *cobra.Command, args []string) error {
 		if err := cmd.Root().GenBashCompletionV2(os.Stdout, true); err != nil {
 			return err
 		}
-		// In bash, we support fzf too:
-		fmt.Println(genFzfBashCompletion(cmd.Root().Name()))
+		// Currently in bash we do not support fzf, because when we define the fzf function and enable completion
+		// for it, it'll override the original completion function, this is while we need to just call it when
+		// user's input ends with "**" to the fzf trigger value.
+		// TODO: enable completion for bash, but keep the original completion too.
+		//fmt.Println(genFzfBashCompletion(cmd.Root().Name()))
 	case "zsh":
 		if err := cmd.Root().GenZshCompletion(os.Stdout); err != nil {
 			return err
