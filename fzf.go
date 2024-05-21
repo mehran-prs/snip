@@ -18,6 +18,6 @@ _fzf_complete_%[1]s() {
   _fzf_path_completion $(%[1]s dir $prefix) "$@"
 }
 
-type __fzf_defc &>/dev/null && __fzf_defc %[1]s _fzf_complete_%[1]s "-o default -o bashdefault"
+complete -F _fzf_complete_%[1]s -o default -o bashdefault %[1]s
 `, appName)
 }
