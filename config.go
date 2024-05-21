@@ -51,11 +51,11 @@ func loadConfig(globalPrefix string, appPrefix string) (err error) {
 			Cfg.Exclude = strings.Split(exclude, ",")
 		}
 
-		Cfg.FileViewerCMD, err = parseCommand(env("file_viewer_cmd", "bat --style plain --paging never"))
+		Cfg.FileViewerCMD, err = parseCommand(env("file_viewer_cmd", "cat"))
 		if err != nil {
 			return
 		}
-		Cfg.MarkdownViewerCMD, err = parseCommand(env("markdown_viewer_cmd", "glow"))
+		Cfg.MarkdownViewerCMD, err = parseCommand(env("markdown_viewer_cmd", "cat"))
 		if err != nil {
 			return
 		}

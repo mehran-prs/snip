@@ -21,10 +21,10 @@ Snip is a simple and minimal command-line snippet manager.
 
 - View your snippets on command line and also manage them (create, edit, delete) using your favorite editor.
 - Command-line auto-completion for the snippets names (supports `bash`, `zsh`, `fish` and `powershell`).
-- Seamlessly integration with `fzf` to provide fuzzy search.
+- Seamlessly integration with `fzf` to provide fuzzy completion.
 - Syntax highlighting (using `bat` and `glow` by default) and Git integration
 
-### Usage
+### How to use
 
 #### View a snippet
 
@@ -32,7 +32,7 @@ Snip is a simple and minimal command-line snippet manager.
 - If you've
   enabled [`fzf` shell integration](https://github.com/junegunn/fzf?tab=readme-ov-file#setting-up-shell-integration) in
   you bash or zsh,
-  you can find snippets by fuzzy search. e.g., type `snip **` and pres tab.
+  you can find snippets by fuzzy completion. e.g., type `snip **` and pres tab.
 
 ![snip view snippets](docs/images/snip-view.gif)
 
@@ -71,24 +71,14 @@ git add -A && git commit -m "Initial commit"
 git push -u origin main
 ```
 
-### Prerequisites
-
-- [`bat`](https://github.com/sharkdp/bat) and [`glow`](https://github.com/charmbracelet/glow) to render your snippets. (
-  you can customize `snip` to use other tools to
-  render files)
-- (optional): [`fzf`](https://github.com/junegunn/fzf) to enable fuzzy-search in auto-completion.
-  (currently `fzf` autocompletion feature is supported just in `bash` and `zsh`).
-
 ### Getting started
 
-- [Install prerequisites](#prerequisites): Install `bat` and `glow` commands. and optionally(recommended) `fzf` if
-  you're
-  using bash or zsh.
 - [Install the snip command](#installation).
 - [Enable auto-completion](#setting-up-shell-integration)
-- [Set `SNIP_DIR`](#customization) env variables in your shell config (e.g., `~/.zshrc`) to point to your snippets
-  directory
-- [Use `snip`](#usage) :))
+- (optional) Set custom [snippets directory path](#customization).
+- (optional) [Enable syntax highlighting](#enable-syntax-highlighting)
+- (optional) [Enable fuzzy completion if your shell is bash or zsh](#enable-fuzzy-completion).
+- [Use `snip`](#how-to-use) :))
 
 ### Installation
 
@@ -100,7 +90,10 @@ go install -ldflags "-X main.Version=main -X main.Date=`date +'%FT%TZ%z'`"  gith
 
 Or get pre-compiled executables [here](http://github.com/mehran-prs/snip/releases)
 
-### Setting up shell integration
+> [!IMPORTANT]
+> To set up completion, see the [instructions below](#setting-up-shell-integration).
+
+### Shell integration
 
 Add the following line to your shell configuration file.
 
@@ -122,23 +115,23 @@ Add the following line to your shell configuration file.
 
 > [!NOTE]
 > [fzf shell integration](https://github.com/junegunn/fzf?tab=readme-ov-file#setting-up-shell-integration) is a
-> pre-requisite
-> of snip fuzzy search in auto-completion.
+> pre-requisite of snip fuzzy completion.
 
 ### Customization
 
-Set the following env variables to customize snip:
+Set the following env variables to customize snip(e.g., put `export SNIP_DIR=/path/to/dir` in your shell config file):
 
 | Name                     | Default                                             | Description                                                                     |
 |--------------------------|-----------------------------------------------------|---------------------------------------------------------------------------------|
 | SNIP_DIR                 | `~/snippets`                                        | The snippets directory. It must be absolute path                                |
-| SNIP_FILE_VIEWER_CMD     | `bat --style plain --paging never`                  | The tool which renders non-markdown files in cmd                                |
-| SNIP_MARKDOWN_VIEWER_CMD | `glow`                                              | The tool which renders markdown files in cmd                                    |
+| SNIP_FILE_VIEWER_CMD     | `cat`                                               | The tool which renders non-markdown files in cmd                                |
+| SNIP_MARKDOWN_VIEWER_CMD | `cat`                                               | The tool which renders markdown files in cmd                                    |
 | SNIP_EDITOR              | Value of the `EDITOR` env variable, otherwise `vim` | The editor which snip uses to let you edit snippets                             |
 | SNIP_GIT                 | `git`                                               | The git command which it uses to sync snippets with your remote git repository  |
 | SNIP_EXCLUDE             | `.git,.idea`                                        | comma-separated list of directories that you want to exclude in auto-completion |
-| SNIP_VERBOSE             | ""                                                  | Enable verbose mode                                                             |
-| SNIP_LOG_TMP_FILENAME    | ""                                                  | Set a temporary log file. it's helpful in autocompletion debugging              |
+| SNIP_VERBOSE             | ""                                                  | Enable verbose mode (values: `true`)                                            |
+| SNIP_LOG_TMP_FILENAME    | ""                                                  | Set path to a temporary log file. it's helpful in autocompletion debugging      |
+
 
 ### Commands
 
@@ -159,6 +152,33 @@ Available Commands:
 Flags:
   -h, --help   help for snip
 ```
+### Enable syntax highlighting
+
+- Install [`bat`](https://github.com/sharkdp/bat) and [`glow`](https://github.com/charmbracelet/glow).
+
+- Set the following env variables in your shell configuration(e.g., `~/.zshrc`):
+
+```bash
+export SNIP_FILE_VIEWER_CMD="bat --style plain --paging never"
+export SNIP_MARKDOWN_VIEWER_CMD="glow"
+```
+
+> [!IMPORTANT]
+> On some operating systems (like ubuntu), the `bat` executable may be installed as `batcat` instead of `bat`, in such
+> cases, set `batcat` instead of `bat` in `SNIP_FILE_VIEWER_CMD` env variable.
+
+### Enable fuzzy completion
+
+- Install [`fzf`](https://github.com/junegunn/fzf) to enable fuzzy completion.
+- Set up [`fzf` shell integration](https://github.com/junegunn/fzf?tab=readme-ov-file#setting-up-shell-integration)
+
+> [!Note]
+> Fuzzy completion is supported just in bash and zsh.
+
+
+> [!NOTE]
+> In your shell configuration, `fzf` shell integration needs to be enabled before the `snip` shell integration.
+
 
 ### Multi-tenancy (Advanced usage)
 
@@ -174,7 +194,7 @@ for example to add the `tasks` command, follow these steps:
 ln -s $(whereis snip | awk '{print $2}') /usr/local/bin/tasks
 ```
 
-- Update your shell config to set the tasks directory for the `tasks` command(as its snippets directory) and also 
+- Update your shell config to set the tasks directory for the `tasks` command(as its snippets directory) and also
   enable autocompletion for it:
 
 ```bash

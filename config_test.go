@@ -32,8 +32,8 @@ func TestLoadDefaultConfig(t *testing.T) {
 
 	assertEqual(t, loadConfig("TEST", "TEST"), nil)
 	assertEqual(t, Cfg.Dir, path.Join(homeDir, "snippets"))
-	assertEqualSlice(t, Cfg.FileViewerCMD, []string{"bat", "--style", "plain", "--paging", "never"})
-	assertEqualSlice(t, Cfg.MarkdownViewerCMD, []string{"glow"})
+	assertEqualSlice(t, Cfg.FileViewerCMD, []string{"cat"})
+	assertEqualSlice(t, Cfg.MarkdownViewerCMD, []string{"cat"})
 	assertEqual(t, Cfg.Editor, "abc")
 	assertEqual(t, Cfg.Git, "git")
 	assertEqualSlice(t, Cfg.Exclude, []string{".git", ".idea"})
