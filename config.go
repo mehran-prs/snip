@@ -40,7 +40,7 @@ func loadConfig(globalPrefix string, appPrefix string) (err error) {
 			return
 		}
 		Cfg = &Config{
-			Dir:            env("dir", path.Join(homeDir, "snippets")),
+			Dir:            strings.TrimSuffix(env("dir", path.Join(homeDir, "snippets")), string(os.PathSeparator)),
 			Editor:         env("editor", os.Getenv("EDITOR"), "vim"),
 			Git:            env("git", "git"),
 			Verbose:        env("verbose", "") != "",
@@ -93,10 +93,7 @@ func (c *Config) SnippetPath(name string) string {
 		fname = JoinPaths(c.Dir, name)
 	}
 
-	isDirName := len(fname) != 0 && fname[len(fname)-1] == os.PathSeparator
-
-	stat, err := os.Stat(fname)
-	if err == nil && (!stat.IsDir() || isDirName) { // If file exists and is not a directory, return its name
+	if EndsWithDirectoryPath(fname) { // If it's a path to a directory, return it.
 		return fname
 	}
 

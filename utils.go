@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 )
 
 func Command(name string, args ...string) *exec.Cmd {
@@ -102,4 +105,20 @@ func JoinPaths(elem ...string) string {
 		res = res + string(os.PathSeparator)
 	}
 	return res
+}
+
+func EndsWithDirectoryPath(path string) bool {
+	return len(path) != 0 && path[len(path)-1] == os.PathSeparator
+}
+
+func BoolPrompt(r io.Reader, w io.Writer, msg string) (bool, error) {
+	if _, err := fmt.Fprint(w, msg); err != nil {
+		return false, err
+	}
+	resBytes, err := bufio.NewReader(r).ReadBytes('\n')
+	if err != nil {
+		return false, err
+	}
+	res := strings.ToLower(string(resBytes[:len(resBytes)-1]))
+	return res == "" || res == "y" || res == "yes", nil
 }

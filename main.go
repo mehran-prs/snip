@@ -170,8 +170,20 @@ func CmdCompletionGenerator(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func CmdViewSnippet(_ *cobra.Command, args []string) error {
-	return Cfg.ViewerCmd(Cfg.SnippetPath(args[0])).Run()
+func CmdViewSnippet(c *cobra.Command, args []string) error {
+	fpath := Cfg.SnippetPath(args[0])
+
+	// If the file doesn't exist and is not a directory path, ask for creating it.
+	if _, err := os.Stat(fpath); errors.Is(err, os.ErrNotExist) && !EndsWithDirectoryPath(fpath) {
+		msg := fmt.Sprintf("File %s doesn't exist, create it? (y/n) [y] ", strings.TrimPrefix(fpath, Cfg.Dir))
+		edit, err := BoolPrompt(c.InOrStdin(), c.OutOrStdout(), msg)
+		if err != nil || !edit {
+			return err
+		}
+
+		return CmdEditSnippet(c, args)
+	}
+	return Cfg.ViewerCmd(fpath).Run()
 }
 
 func CmdSnippetsDir(_ *cobra.Command, args []string) error {

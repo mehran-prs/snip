@@ -124,17 +124,19 @@ func TestCmdViewSnippet(t *testing.T) {
 	tmpDir := t.TempDir()
 	Cfg = &Config{
 		Dir:               tmpDir,
-		MarkdownViewerCMD: []string{"touch"},
-		FileViewerCMD:     []string{"touch"},
+		MarkdownViewerCMD: []string{"rm"},
+		FileViewerCMD:     []string{"rm"},
 	}
+
+	makeTree(t, Cfg.Dir, "a.md", "a.yaml")
 
 	assertEqual(t, CmdViewSnippet(nil, []string{"a.md"}), nil)
 	_, err := os.Stat(path.Join(tmpDir, "a.md"))
-	assertEqual(t, err, nil)
+	assertTrue(t, os.IsNotExist(err))
 
 	assertEqual(t, CmdViewSnippet(nil, []string{"a.yaml"}), nil)
 	_, err = os.Stat(path.Join(tmpDir, "a.yaml"))
-	assertEqual(t, err, nil)
+	assertTrue(t, os.IsNotExist(err))
 }
 
 func TestCmdSnippetsDir(t *testing.T) {

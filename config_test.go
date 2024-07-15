@@ -13,9 +13,9 @@ func setEnv(t *testing.T, key, value string) {
 	t.Helper()
 
 	oldVal := os.Getenv(key)
-	assertEqual(t, os.Setenv(key, value), nil)
+	t.Setenv(key, value)
 	t.Cleanup(func() {
-		assertEqual(t, os.Setenv(key, oldVal), nil)
+		t.Setenv(key, oldVal)
 	})
 }
 

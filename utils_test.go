@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"testing"
@@ -101,4 +103,40 @@ func TestParseCommand(t *testing.T) {
 func TestJoinPaths(t *testing.T) {
 	assertEqual(t, "a/b/", JoinPaths("a", "b/"))
 	assertEqual(t, "a/b", JoinPaths("a", "b"))
+}
+
+func TestEndsWithDirectoryPath(t *testing.T) {
+	assertEqual(t, EndsWithDirectoryPath("a"), false)
+	assertEqual(t, EndsWithDirectoryPath("a/b"), false)
+	assertEqual(t, EndsWithDirectoryPath("/a"), false)
+
+	assertEqual(t, EndsWithDirectoryPath("a/"), true)
+	assertEqual(t, EndsWithDirectoryPath("a/b/"), true)
+}
+
+func TestBoolPrompt(t *testing.T) {
+	cases := []struct {
+		Tag    string
+		reader io.Reader
+		res    bool
+	}{
+		{Tag: "t1", reader: bytes.NewBufferString("n\n"), res: false},
+		{Tag: "t1", reader: bytes.NewBufferString("no\n"), res: false},
+		{Tag: "t1", reader: bytes.NewBufferString("No\n"), res: false},
+		{Tag: "t1", reader: bytes.NewBufferString("other\n"), res: false},
+		{Tag: "t1", reader: bytes.NewBufferString("y\n"), res: true},
+		{Tag: "t1", reader: bytes.NewBufferString("yes\n"), res: true},
+		{Tag: "t1", reader: bytes.NewBufferString("Yes\n"), res: true},
+	}
+
+	for _, c := range cases {
+		t.Run(c.Tag, func(t *testing.T) {
+			var w bytes.Buffer
+			ok, err := BoolPrompt(c.reader, &w, "abc")
+			assertEqual(t, w.String(), "abc")
+			assertEqual(t, err, nil)
+			assertTrue(t, ok == c.res)
+		})
+	}
+
 }
