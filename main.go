@@ -175,7 +175,8 @@ func CmdViewSnippet(c *cobra.Command, args []string) error {
 
 	// If the file doesn't exist and is not a directory path, ask for creating it.
 	if _, err := os.Stat(fpath); errors.Is(err, os.ErrNotExist) && !EndsWithDirectoryPath(fpath) {
-		msg := fmt.Sprintf("File %s doesn't exist, create it? (y/n) [y] ", strings.TrimPrefix(fpath, Cfg.Dir))
+		relativeFname := strings.TrimPrefix(fpath, Cfg.Dir+string(os.PathSeparator))
+		msg := fmt.Sprintf("File %s doesn't exist, create it? (y/n) [y] ", relativeFname)
 		edit, err := BoolPrompt(c.InOrStdin(), c.OutOrStdout(), msg)
 		if err != nil || !edit {
 			return err

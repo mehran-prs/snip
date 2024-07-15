@@ -67,13 +67,13 @@ func TestLoadConfig(t *testing.T) {
 
 func TestLoadConfigInheritance(t *testing.T) {
 	defer resetConfig()
-	setEnv(t, "TEST_DIR", "/ab/c")
+	setEnv(t, "TEST_DIR", "/ab/c/")
 	setEnv(t, "SNIP_DIR", "/ab/d")
 	setEnv(t, "SNIP_GIT", "abc")
 	assertEqual(t, loadConfig("TEST", "TEST"), nil)
 
 	assertEqual(t, Cfg.Dir, "/ab/c")
-	assertEqual(t, Cfg.Dir, "/ab/c")
+	assertEqual(t, Cfg.Git, "git")
 }
 
 func TestConfig_ViewerCmd(t *testing.T) {
