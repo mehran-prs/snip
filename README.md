@@ -31,7 +31,7 @@ Snip is a simple and minimal command-line snippet manager.
 - Run `snip {snippet_name}` to view a snippet.
 - If you've
   enabled [`fzf` shell integration](https://github.com/junegunn/fzf?tab=readme-ov-file#setting-up-shell-integration) in
-  you `zsh` shell, you can find snippets by fuzzy completion. e.g., type `snip **` and pres tab.
+  you `zsh` shell, you can find snippets by fuzzy completion. e.g., type `snip **` and press tab.
 
 ![snip view snippets](docs/images/snip-view.gif)
 
@@ -98,12 +98,12 @@ Add the following line to your shell configuration file.
 
 * bash
   ```sh
-  # Set up snip regular and fuzzy completion
+  # Set up snip completion
   source <(snip completion bash)
   ```
 * zsh
   ```sh
-  # Set up snip regular and fuzzy completion
+  # Set up snip completion (including fuzzy completion)
   source <(snip completion zsh)
   ```
 * fish
